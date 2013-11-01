@@ -8,13 +8,16 @@ android-sqlite-generator
 This compiler will generate you db class, content provider and several helper class for you from a describing file. You can set several options like package name, database name, database version, content authority and others.
 
 By default, the following files will be generated.
-####[name]DB.java
-- This is the main database. It extends `SQLiteOpenHelper`’ and contains all necessary code for maintaining the database and column names and positions. 
-####[contentprovidername].java
+#####[name]DB.java
+- This is the main database. It extends `SQLiteOpenHelper`’ and contains all necessary code for maintaining the database and column names and positions.
+
+#####[contentprovidername].java
 - This class is the content provider to use. It's your run of the mill android `ContentProvider`.
-####[contentprovidername]Client.java
+
+#####[contentprovidername]Client.java
 - The client provides easy access to CRUD operations on any described table.
-####[contentprovidername]BatchClient.java
+
+#####[contentprovidername]BatchClient.java
 - The batch client works the same as above, but is used for batched `ContentProviderOperation`. It contains methods to easily start a batch of `ContentProviderOperation` and commit it with the correct authority.
 
 # How
@@ -63,8 +66,9 @@ ENDTABLE
 
 // Every view is defined between VIEW and ENDVIEW
 // you can define join type with (TYPE=xxx)
+// only "select" and "from" are mandatory. Other configurations translate directly to their SQL counterparts.
 // a select is defined in 2 or 3 columns with "select" "tablename.columnname" "AS name"
-// select values from tables and join on the same column in all tables
+// join values from tables on the same column in all tables
 // order by is defined in 2 or 3 columns with "order" "tablename.columnname" "ASC/DESC"
 // grouping is defined in 2 columns with "group" "tablename.columnname"
 VIEW User	(TYPE=INNER JOIN)
@@ -88,13 +92,27 @@ ENDVIEW
 - default conflict strategy is `ON CONFLICT REPLACE`
 
 ###supported data types
--	Float
--	Double
--	Long
--	Integer
--	Boolean
--	float
--	double
--	long
--	int
--	boolean
+```
+- Float
+- Double
+- Long
+- Integer
+- Boolean
+- float
+- double
+- long
+- int
+- boolean
+```
+
+# Upcoming features
+- joining on different fields
+- multiple unqiue keys
+- foreign keys
+
+# acknowledgements
+
+Thanks in part to [Square][1], for their excellent [Javawriter] [2]
+
+[1]:http://square.github.io/
+[2]:https://github.com/square/javawriter
