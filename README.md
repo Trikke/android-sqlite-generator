@@ -9,7 +9,7 @@ This compiler will generate you db class, content provider and several helper cl
 
 By default, the following files will be generated.
 #####[name]DB.java
-- This is the main database. It extends `SQLiteOpenHelper`’ and contains all necessary code for maintaining the database and column names and positions.
+- This is the main database. It extends `SQLiteOpenHelper` and contains all necessary code for maintaining the database and column names and positions.
 
 #####[contentprovidername].java
 - This class is the content provider to use. It's your run of the mill android `ContentProvider`.
@@ -29,6 +29,12 @@ Run the above command. There are only 2 parameters.
 
 - **describe** : path to the text file describing the DB
 - **java_out** : path to put generated files. Please note that packagename will be used to generate subfolders
+
+Don't forget to add the content provider to the AndroidManifest.
+
+```xml
+<provider android:name="PACKAGE.NAMEDB" android:authorities="AUTHORITY">
+```
 
 # The describe file
 
