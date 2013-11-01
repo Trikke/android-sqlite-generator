@@ -36,6 +36,12 @@ Don't forget to add the content provider to the AndroidManifest.
 <provider android:name="PACKAGE.NAMEDB" android:authorities="AUTHORITY">
 ```
 
+# Download
+
+You can find releases here on [GitHub][3].
+
+[3]: https://github.com/Trikke/android-sqlite-generator/releases
+
 # The describe file
 
 The describe file is a text file in which you can describe your tables and view, together with unique keys, groups, sorts and orders.
@@ -91,7 +97,7 @@ group		BaseUser.userid
 ENDVIEW
 ```
 
-# Know issues/limitations
+# Know issues / limitations
 
 ###issues
 - only one unique key can be set
@@ -115,6 +121,7 @@ ENDVIEW
 - joining on different fields
 - multiple unqiue keys
 - foreign keys
+- "upsert"
 
 # acknowledgements
 
