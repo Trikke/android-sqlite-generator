@@ -96,6 +96,16 @@ public class CRUDBatchClientWriter extends Writer
 		writer.emitStatement( "throw new RuntimeException(\"" + mModel.getCRUDBatchClientName() + ".start() needs to be called first!\")" );
 		writer.endControlFlow();
 		writer.endMethod();
+
+		writer.emitEmptyLine();
+		writer.emitJavadoc( "add an operation to the batch of operations, if this client was started." );
+		writer.beginMethod( "void", "add", EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), "ContentProviderOperation", "operation" );
+		writer.beginControlFlow( "if (batchOperations != null) " );
+		writer.emitStatement( "batchOperations.add(operation)" );
+		writer.nextControlFlow( "else" );
+		writer.emitStatement( "throw new RuntimeException(\"" + mModel.getCRUDBatchClientName() + ".start() needs to be called first!\")" );
+		writer.endControlFlow();
+		writer.endMethod();
 	}
 
 	private void emitTableCRUD( Table table ) throws Exception

@@ -1,9 +1,6 @@
 package com.trikke.util;
 
-import com.trikke.data.Pair;
-import com.trikke.data.SQLObject;
-import com.trikke.data.Table;
-import com.trikke.data.View;
+import com.trikke.data.*;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -46,7 +43,7 @@ public class SqlUtil
 		return obj.name + "_" + printSelect( selector ).toUpperCase() + "_COLUMN_POSITION";
 	}
 
-	public static String generateCreateStatement( Table table )
+	public static String generateCreateStatement( Model model, Table table )
 	{
 		String statement = "create table " + table.name + " (";
 
@@ -67,7 +64,7 @@ public class SqlUtil
 
 		if ( table.uniqueKey != null )
 		{
-			statement += ",\" + \n\t\t\t\" UNIQUE (" + table.uniqueKey + ") ON CONFLICT REPLACE);";
+			statement += ",\" + \n\t\t\t\" UNIQUE (" + table.uniqueKey + ") ON CONFLICT "+model.getConflictStrategy()+");";
 		} else
 		{
 			statement += ");";

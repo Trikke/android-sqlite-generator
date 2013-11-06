@@ -333,8 +333,31 @@ public class ContentProviderWriter extends Writer
 		writer.beginMethod( "Uri", "insert", EnumSet.of( Modifier.PUBLIC ), "Uri", "uri", "ContentValues", "values" );
 		writer.emitSingleLineComment( "Open database" );
 		writer.emitStatement( "SQLiteDatabase db = mLocalDatabase.getWritableDatabase()" );
-		writer.emitStatement( "String nullColumnHack = null" );
-		writer.emitStatement( "long id = db.insert(getTableNameFromUri(uri), nullColumnHack, values)" );
+		writer.emitSingleLineComment( "Try to do an insert as per usual" );
+		writer.emitStatement( "long id = db.insert(getTableNameFromUri(uri), nullColumnHack, values" );
+		writer.emitEmptyLine();
+
+		writer.beginControlFlow( "if (id == -1)" );
+		writer.emitSingleLineComment( "There was an error inserting, try upsert!" );
+		writer.beginControlFlow( "if (containsUnique(uri, values))" );
+		writer.emitStatement( "ContentValues withoutUnique = new ContentValues(values)" );
+		writer.emitStatement( "String unique = getUniqueKey(uri)" );
+		writer.emitStatement( "withoutUnique.remove(unique)" );
+		writer.emitStatement( "String selection = unique + \"=?\"" );
+		writer.emitStatement( "String[] selectionArgs = new String[]{String.valueOf(values.get(unique))}" );
+		writer.emitStatement( "db.update(getTableNameFromUri(uri), withoutUnique, selection, selectionArgs)" );
+		writer.beginControlFlow( "if (updated > 0)");
+		writer.emitSingleLineComment( "If any row was updated, we'll get the row id from that row so we can pass it along below." );
+		writer.emitStatement( "SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder()");
+		writer.emitStatement( "queryBuilder.setTables(getTableNameFromUri(uri))");
+		writer.emitStatement( "Cursor c = queryBuilder.query(db, new String[]{\"_id\"}, selection, selectionArgs, null, null, null)");
+		writer.emitStatement( "c.moveToNext()" );
+		writer.emitStatement( "id = c.getLong(0)" );
+		writer.emitStatement( "c.close()" );
+		writer.endControlFlow();
+		writer.endControlFlow();
+
+		writer.endControlFlow();
 		writer.emitEmptyLine();
 		writer.beginControlFlow( "if (id > -1)" );
 		writer.emitSingleLineComment( "the insert was successful" );

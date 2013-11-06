@@ -113,7 +113,7 @@ public class DatabaseWriter extends Writer
 		for ( Table table : mModel.getTables() )
 		{
 			writer.emitSingleLineComment( table.name + " create statement" );
-			writer.emitField( "String", "DATABASE_" + table.name.toUpperCase() + "_CREATE", EnumSet.of( Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL ), "\"" + SqlUtil.generateCreateStatement( table ) + "\"" );
+			writer.emitField( "String", "DATABASE_" + table.name.toUpperCase() + "_CREATE", EnumSet.of( Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL ), "\"" + SqlUtil.generateCreateStatement( mModel, table ) + "\"" );
 			writer.emitEmptyLine();
 		}
 	}

@@ -17,7 +17,7 @@ import java.util.Scanner;
 
 public class SqliteGenerator
 {
-	private static final String VERSION = "1.0";
+	private static final String VERSION = "1.1";
 
 	private static final String DESCRIBE_PATH_FLAG = "--describe=";
 	private static final String JAVA_OUT_FLAG = "--java_out=";
@@ -27,6 +27,7 @@ public class SqliteGenerator
 	private static final String DB_CONTENTPROVIDER = "CONTENTPROVIDERNAME";
 	private static final String PACKAGE = "PACKAGE";
 	private static final String AUTHORITY = "AUTHORITY";
+	private static final String CONFLICTSTRATEGY = "CONFLICTSTRATEGY";
 
 	private static final String TABLE_TAG = "TABLE";
 	private static final String TABLE_END_TAG = "ENDTABLE";
@@ -86,9 +87,13 @@ public class SqliteGenerator
 		System.out.println(" Android Sqlite Generator v" + VERSION);
 		System.out.println("-------------------------------");
 
+		System.out.println();
+
 		parseDbDetails();
 		parseTables();
 		parseViews();
+
+		System.out.println();
 
 		if ( !mModel.getTables().isEmpty() )
 		{
@@ -152,6 +157,19 @@ public class SqliteGenerator
 				{
 					mModel.setContentProviderName( parts[1] );
 					System.out.println( "provider Found > " + mModel.getContentProviderName() );
+				}
+
+				if ( line.startsWith( CONFLICTSTRATEGY ) )
+				{
+					try
+					{
+						mModel.setConflictStrategy( parts[1] );
+					} catch ( RuntimeException ex )
+					{
+						System.err.println( ex.getMessage() );
+						System.exit( 1 );
+					}
+					System.out.println( "Conflict Strategy Found > " + mModel.getConflictStrategy() );
 				}
 			}
 		}
