@@ -28,6 +28,7 @@ public class Model
 		validStrategies.add( "FAIL" );
 		validStrategies.add( "IGNORE" );
 		validStrategies.add( "REPLACE" );
+		validStrategies.add( "UPSERT" );
 	}
 
 	public void addTable( Table table )
@@ -127,6 +128,14 @@ public class Model
 
 	public String getConflictStrategy()
 	{
+		return conflictStrategy;
+	}
+
+	public String getConflictStrategyClause()
+	{
+		if (conflictStrategy.equals( "UPSERT" ))
+			return "IGNORE";
+
 		return conflictStrategy;
 	}
 

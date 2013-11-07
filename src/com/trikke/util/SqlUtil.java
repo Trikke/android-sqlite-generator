@@ -64,7 +64,7 @@ public class SqlUtil
 
 		if ( table.uniqueKey != null )
 		{
-			statement += ",\" + \n\t\t\t\" UNIQUE (" + table.uniqueKey + ") ON CONFLICT "+model.getConflictStrategy()+");";
+			statement += ",\" + \n\t\t\t\" UNIQUE (" + table.uniqueKey + ") ON CONFLICT "+model.getConflictStrategyClause()+");";
 		} else
 		{
 			statement += ");";
