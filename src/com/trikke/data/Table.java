@@ -1,5 +1,7 @@
 package com.trikke.data;
 
+import com.trikke.util.Util;
+
 /**
  * Created by the awesome :
  * User: trikke
@@ -19,7 +21,7 @@ public class Table extends SQLObject
 
 	public void addField( String type, String name )
 	{
-		fields.add( new Pair<String, String>( type, name ) );
+		fields.add( new Pair<String, String>( Util.getValidType(type), name ) );
 	}
 
 	public String getSingleName()

@@ -82,4 +82,57 @@ public class Util
 
 		return clean.toArray( new String[clean.size()] );
 	}
+
+	public static String getValidType( String type )
+	{
+		type = Util.sanitize( type, false );
+		if ( type.equals( "Float" ) )
+		{
+			return "float";
+		}
+		if ( type.equals( "Double" ) )
+		{
+			return "double";
+		}
+		if ( type.equals( "Long" ) )
+		{
+			return "long";
+		}
+		if ( type.equals( "Integer" ) )
+		{
+			return "int";
+		}
+		if ( type.equals( "Date" ) )
+		{
+			return "Date";
+		}
+		if ( type.equals( "float" ) )
+		{
+			return "float";
+		}
+		if ( type.equals( "double" ) )
+		{
+			return "double";
+		}
+		if ( type.equals( "long" ) )
+		{
+			return "long";
+		}
+		if ( type.equals( "int" ) )
+		{
+			return "int";
+		}
+
+		if ( type.equals( "Boolean" ) )
+		{
+			return "boolean";
+		}
+
+		if ( type.equals( "boolean" ) )
+		{
+			return "boolean";
+		}
+
+		return "String";
+	}
 }
