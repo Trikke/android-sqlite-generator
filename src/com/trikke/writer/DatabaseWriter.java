@@ -63,7 +63,7 @@ public class DatabaseWriter extends Writer
 		writer.emitEmptyLine();
 		writer.emitField( "String", "TAG", EnumSet.of( Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL ), "\"" + mModel.getDbClassName() + "\"" );
 		writer.emitField( "String", "DATABASE_NAME", EnumSet.of( Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL ), "\"" + mModel.getDbClassName() + ".db\"" );
-		writer.emitField( "int", "DATABASE_VERSION", EnumSet.of( Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL ), mModel.getDbVersion() );
+		writer.emitField( "int", "DATABASE_VERSION", EnumSet.of( Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL ), String.valueOf( mModel.getDbVersion() ) );
 		writer.emitField( "String", "ROW_ID", EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "\"" + Table.ANDROID_ID + "\"" );
 		writer.emitEmptyLine();
 	}

@@ -1,15 +1,12 @@
 package com.trikke.data;
 
-import java.util.ArrayList;
-
 /**
  * Created by the awesome :
  * User: trikke
- * Date: 29/10/13
- * Time: 09:22
+ * Date: 25/11/13
+ * Time: 14:08
  */
-public abstract class SQLObject
+public class SQLObject
 {
 	public String name;
-	public ArrayList<Pair<String, String>> fields = new ArrayList<Pair<String, String>>();
 }

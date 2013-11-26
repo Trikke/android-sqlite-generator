@@ -1,5 +1,7 @@
 package com.trikke;
 
+import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.json.JsonValue;
 import com.trikke.data.Model;
 import com.trikke.data.Table;
 import com.trikke.data.View;
@@ -11,13 +13,10 @@ import com.trikke.writer.DatabaseWriter;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
 
 public class SqliteGenerator
 {
-	private static final String VERSION = "1.1";
+	private static final String VERSION = "1.2";
 
 	private static final String DESCRIBE_PATH_FLAG = "--describe=";
 	private static final String JAVA_OUT_FLAG = "--java_out=";
@@ -38,7 +37,10 @@ public class SqliteGenerator
 	private static final String UNIQUE_TAG = "UNIQUE=";
 	private static final String TYPE_TAG = "TYPE=";
 
-	private final String describeFile;
+	private static final String CONFIG_TAG = "TYPE=";
+
+	private String filepath = "assets/describe/";
+	private String configFile = "assets/describe/config.json";
 	private Model mModel;
 
 	public static void main( String[] args ) throws Exception
@@ -77,21 +79,19 @@ public class SqliteGenerator
 
 	public SqliteGenerator( String describeFile )
 	{
-		this.describeFile = describeFile;
 		this.mModel = new Model();
 	}
 
 	public void compile( String javaOut ) throws Exception
 	{
-		System.out.println("-------------------------------");
-		System.out.println(" Android Sqlite Generator v" + VERSION);
-		System.out.println("-------------------------------");
+		System.out.println( "-------------------------------" );
+		System.out.println( " Android Sqlite Generator v" + VERSION );
+		System.out.println( "-------------------------------" );
 
 		System.out.println();
 
-		parseDbDetails();
-		parseTables();
-		parseViews();
+		parseConfig();
+		parse();
 
 		System.out.println();
 
@@ -110,252 +110,173 @@ public class SqliteGenerator
 			crudBatchClientWriter.compile();
 
 			System.out.println();
-			System.out.println("Don't forget to add the following to your AndroidManifest.xml under the <application> tag.");
+			System.out.println( "Don't forget to add the following to your AndroidManifest.xml under the <application> tag." );
 			System.out.println();
-			System.out.println("<provider android:name=\""+mModel.getClassPackage()+"."+mModel.getDbClassName()+"\" android:authorities=\""+mModel.getContentAuthority()+"\">");
+			System.out.println( "<provider android:name=\"" + mModel.getClassPackage() + "." + mModel.getDbClassName() + "\" android:authorities=\"" + mModel.getContentAuthority() + "\">" );
 			System.out.println();
 		}
 	}
 
-	private void parseDbDetails() throws IOException
+	private void parseConfig()
 	{
-		File file = new File( describeFile );
-
-		String line;
-		Scanner in = new Scanner( file );
-		while ( in.hasNextLine() )
+		try
 		{
-			line = in.nextLine();
-			if ( !line.startsWith( "//" ) )
+			JsonObject config = Util.getJsonFromFile( configFile );
+
+			mModel.setClassPackage( config.get( "package" ).asString() );
+			mModel.setContentAuthority( config.get( "authority" ).asString() );
+			mModel.setDbName( config.get( "databaseName" ).asString() );
+			mModel.setDbVersion( config.get( "databaseVersion" ).asInt() );
+			mModel.setContentProviderName( config.get( "contentproviderName" ).asString() );
+
+			try
 			{
-				String[] parts = Util.splitParts( line );
-				if ( line.startsWith( PACKAGE ) )
-				{
-					mModel.setClassPackage( parts[1] );
-					System.out.println( "Package Found > " + mModel.getClassPackage() );
-				}
-
-				if ( line.startsWith( AUTHORITY ) )
-				{
-					mModel.setContentAuthority( parts[1] );
-					System.out.println( "Authority Found > " + mModel.getContentAuthority() );
-				}
-
-				if ( line.startsWith( DB_NAME ) )
-				{
-					mModel.setDbName( parts[1] );
-					System.out.println( "Name Found > " + mModel.getDbName() );
-				}
-
-				if ( line.startsWith( DB_VERSION ) )
-				{
-					mModel.setDbVersion( parts[1] );
-					System.out.println( "version Found > " + mModel.getDbVersion() );
-				}
-
-				if ( line.startsWith( DB_CONTENTPROVIDER ) )
-				{
-					mModel.setContentProviderName( parts[1] );
-					System.out.println( "provider Found > " + mModel.getContentProviderName() );
-				}
-
-				if ( line.startsWith( CONFLICTSTRATEGY ) )
-				{
-					try
-					{
-						mModel.setConflictStrategy( parts[1] );
-					} catch ( RuntimeException ex )
-					{
-						System.err.println( ex.getMessage() );
-						System.exit( 1 );
-					}
-					System.out.println( "Conflict Strategy Found > " + mModel.getConflictStrategy() );
-				}
+				mModel.setConflictStrategy( config.get( "conflictStrategy" ).asString() );
+			} catch ( RuntimeException ex )
+			{
+				System.err.println( ex.getMessage() );
+				System.exit( 1 );
 			}
-		}
 
-		if ( mModel.getClassPackage() == null )
+		} catch ( IOException ex )
 		{
-			System.err.println( "Must specify " + PACKAGE + " in your describing file" );
+			System.err.println( ex.getMessage() );
 			System.exit( 1 );
 		}
-
-		if ( mModel.getContentAuthority() == null )
+		catch ( com.eclipsesource.json.ParseException pex )
 		{
-			System.err.println( "Must specify " + AUTHORITY + " in your describing file" );
+			System.err.println( "Couldn't parse the config json file. Make sure it is valid json." );
 			System.exit( 1 );
 		}
-
-		if ( mModel.getDbName() == null )
+		catch ( NullPointerException npex )
 		{
-			System.err.println( "Must specify " + DB_NAME + " in your describing file" );
-			System.exit( 1 );
-		}
-
-		if ( mModel.getDbVersion() == null )
-		{
-			System.err.println( "Must specify " + DB_VERSION + " in your describing file" );
-			System.exit( 1 );
-		}
-
-		if ( mModel.getContentProviderName() == null )
-		{
-			System.err.println( "Must specify " + DB_CONTENTPROVIDER + " in your describing file" );
+			System.err.println( "A required value in the config file is missing." );
 			System.exit( 1 );
 		}
 	}
 
-	private void parseTables() throws IOException
+	private void parse()
 	{
-		File file = new File( describeFile );
+		parseObjectsForFolder( new File( filepath ) );
+	}
 
-		String line;
-		List<String> tablelines = null;
-		Scanner in = new Scanner( file );
-		while ( in.hasNextLine() )
-		{
-			line = in.nextLine();
-			if ( !line.startsWith( "//" ) )
-			{
-				if ( line.startsWith( TABLE_TAG ) )
+	public void parseObjectsForFolder( final File folder ) {
+		for (final File fileEntry : folder.listFiles()) {
+			if (fileEntry.isDirectory()) {
+				parseObjectsForFolder( fileEntry );
+			} else {
+				if (!fileEntry.getPath().equals( configFile ))
 				{
-					tablelines = new ArrayList<String>();
-				}
-
-				if ( tablelines != null )
-				{
-					tablelines.add( line );
-				}
-
-				if ( line.startsWith( TABLE_END_TAG ) )
-				{
-					if ( tablelines != null )
-					{
-						parseTable( tablelines );
-					} else
-					{
-						System.err.println( "Found a " + TABLE_END_TAG + " before a " + TABLE_TAG );
-						System.exit( 1 );
-						break;
-					}
-
-					tablelines = null;
+					parseObjectFromFile( fileEntry );
 				}
 			}
 		}
 	}
 
-	private void parseTable( List<String> tablelines )
+	private void parseObjectFromFile(final File file)
 	{
-		Table table = new Table();
-		for ( String line : tablelines )
+		int pos = file.getName().lastIndexOf( "." );
+		String name = pos > 0 ? file.getName().substring( 0, pos ) : file.getName();
+
+		try
 		{
-			if ( line.startsWith( TABLE_END_TAG ) )
+			JsonObject json = Util.getJsonFromFile( file.getPath() );
+
+
+			boolean containsFields = json.names().contains( "fields" );
+			boolean containsSelects = json.names().contains( "selects" );
+
+			if (containsFields)
 			{
-				break;
+				parseTableFromFile( json, name );
+			}
+			else if (containsSelects)
+			{
+				parseViewFromFile( json, name );
+			}
+			else
+			{
+				System.err.println( "The object "+name+" contains no valid data. I can not guess if this is a table or a view." );
+				System.exit( 1 );
 			}
 
-			if ( line.startsWith( TABLE_TAG ) )
-			{
-				setTableProperties( table, line );
-			} else
-			{
-				String[] parts = Util.splitParts( line );
-				// normal fields here
-				table.addField( parts[0], parts[parts.length - 1] );
-			}
+		} catch ( IOException e )
+		{
+			System.err.println( e.getMessage() );
+			System.exit( 1 );
+		} catch ( NullPointerException npe )
+		{
+			System.err.println( "The object "+name+" is not the parseble structure i expect it to be, please see formatting guidelines." );
+			System.exit( 1 );
 		}
-		mModel.addTable( table );
 	}
 
-	private void parseViews() throws IOException
+	private void parseTableFromFile(final JsonObject jsontable, final String name)
 	{
-		File file = new File( describeFile );
-
-		String line;
-		List<String> viewlines = null;
-		Scanner in = new Scanner( file );
-		while ( in.hasNextLine() )
+		System.out.println("found table > "+name);
+		boolean containsFields = jsontable.names().contains( "fields" );
+		if (!containsFields)
 		{
-			line = in.nextLine();
-			if ( !line.startsWith( "//" ) )
+			System.err.println( "This table contains no fields." );
+			System.exit( 1 );
+		}
+		else
+		{
+			Table table = new Table();
+			table.name = name;
+			for (JsonValue jsoninfo : jsontable.get( "fields" ).asArray())
 			{
-				if ( line.startsWith( VIEW_TAG ) )
+				JsonObject info = (JsonObject) jsoninfo;
+				table.addField( info.get( "type" ).asString(), info.get( "name" ).asString() );
+			}
+			if (jsontable.names().contains( "constraints" ))
+			{
+				for (JsonValue jsoninfo : jsontable.get( "constraints" ).asArray())
 				{
-					viewlines = new ArrayList<String>();
-				}
-
-				if ( viewlines != null )
-				{
-					viewlines.add( line );
-				}
-
-				if ( line.startsWith( VIEW_END_TAG ) )
-				{
-					if ( viewlines != null )
-					{
-						parseView( viewlines );
-					} else
-					{
-						System.err.println( "Found a " + VIEW_END_TAG + " before a " + VIEW_TAG );
-						System.exit( 1 );
-						break;
-					}
-
-					viewlines = null;
+					JsonObject info = (JsonObject) jsoninfo;
+					table.addConstraint( info.get( "name" ).asString(), info.get( "definition" ).asString() );
 				}
 			}
+			mModel.addTable( table );
 		}
 	}
 
-	private void parseView( List<String> viewlines )
+	private void parseViewFromFile(final JsonObject jsontable, final String name)
 	{
-		View view = new View();
-		for ( String line : viewlines )
+		System.out.println("found view > "+name);
+		boolean containsFields = jsontable.names().contains( "selects" );
+		if (!containsFields)
 		{
-			if ( line.startsWith( VIEW_END_TAG ) )
-			{
-				break;
-			}
-			if ( line.startsWith( VIEW_TAG ) )
-			{
-				setViewProperties( view, line );
-			} else
-			{
-				// normal fields here
-				view.addField( Util.splitParts( line ) );
-			}
+			System.err.println( "This view contains no selects." );
+			System.exit( 1 );
 		}
-		mModel.addView( view );
-	}
-
-	private void setViewProperties( View view, String line )
-	{
-		int start = VIEW_TAG.length() + 1;
-		int next = line.indexOf( "\t", start );
-		if ( next < 0 ) next = line.length();
-
-		view.name = line.substring( start, next ).toUpperCase();
-
-		if ( line.contains( TYPE_TAG ) )
+		else
 		{
-			start = line.indexOf( TYPE_TAG ) + TYPE_TAG.length();
-			view.jointype = Util.sanitize( line.substring( start ), true );
-		}
-	}
-
-	private void setTableProperties( Table table, String line )
-	{
-		int start = TABLE_TAG.length() + 1;
-		int next = line.indexOf( "\t", start );
-		if ( next < 0 ) next = line.length();
-
-		table.name = line.substring( start, next ).toUpperCase();
-
-		if ( line.contains( UNIQUE_TAG ) )
-		{
-			start = line.indexOf( UNIQUE_TAG ) + UNIQUE_TAG.length();
-			table.uniqueKey = Util.sanitize( line.substring( start ), false );
+			View view = new View();
+			view.name = name;
+			for (JsonValue jsoninfo : jsontable.get( "selects" ).asArray())
+			{
+				JsonObject info = (JsonObject) jsoninfo;
+				view.addSelect( (info.names().contains( "name" )) ? info.get( "name" ).asString() : null, info.get( "from" ).asString() );
+			}
+			for (JsonValue jsoninfo : jsontable.get( "from" ).asArray())
+			{
+				view.addFromTable( jsoninfo.asString() );
+			}
+			for (JsonValue jsoninfo : jsontable.get( "on" ).asArray())
+			{
+				view.addJoinOn( jsoninfo.asString() );
+			}
+			for (JsonValue jsoninfo : jsontable.get( "order" ).asArray())
+			{
+				JsonObject info = (JsonObject) jsoninfo;
+				view.addOrder( info.get( "by" ).asString(), (info.names().contains( "sort" )) ? info.get( "sort" ).asString() : "ASC" );
+			}
+			for (JsonValue jsoninfo : jsontable.get( "group" ).asArray())
+			{
+				view.addGroup( jsoninfo.asString() );
+			}
+			mModel.addView( view );
 		}
 	}
 }

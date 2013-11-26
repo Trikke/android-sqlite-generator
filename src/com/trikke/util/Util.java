@@ -1,11 +1,9 @@
 package com.trikke.util;
 
+import com.eclipsesource.json.JsonObject;
 import com.squareup.javawriter.JavaWriter;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -81,6 +79,14 @@ public class Util
 		}
 
 		return clean.toArray( new String[clean.size()] );
+	}
+
+	public static JsonObject getJsonFromFile(String filePath) throws IOException
+	{
+		InputStream file = new FileInputStream( filePath );
+		InputStream buffer = new BufferedInputStream( file );
+		BufferedReader reader = new BufferedReader( new InputStreamReader( buffer ) );
+		return JsonObject.readFrom( reader );
 	}
 
 	public static String getValidType( String type )

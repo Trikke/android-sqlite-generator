@@ -15,7 +15,7 @@ public class Model
 	private String classPackage;
 	private String contentAuthority;
 	private String dbName;
-	private String dbVersion;
+	private int dbVersion;
 	private String contentProviderName;
 	private String conflictStrategy = "REPLACE";
 	private ArrayList<Table> tables = new ArrayList<Table>();
@@ -76,12 +76,12 @@ public class Model
 		this.contentAuthority = contentAuthority;
 	}
 
-	public String getDbVersion()
+	public int getDbVersion()
 	{
 		return dbVersion;
 	}
 
-	public void setDbVersion( String dbVersion )
+	public void setDbVersion( int dbVersion )
 	{
 		this.dbVersion = dbVersion;
 	}

@@ -15,32 +15,32 @@ public class SqlUtil
 {
 	public static String URI( SQLObject obj )
 	{
-		return obj.name + "_URI";
+		return obj.name.toUpperCase() + "_URI";
 	}
 
 	public static String IDENTIFIER( SQLObject obj )
 	{
-		return obj.name + "_TABLE";
+		return obj.name.toUpperCase() + "_TABLE";
 	}
 
 	public static String ROW_COLUMN( SQLObject obj, Pair<String, String> row )
 	{
-		return obj.name + "_" + row.snd.toUpperCase() + "_COLUMN";
+		return obj.name.toUpperCase() + "_" + row.snd.toUpperCase() + "_COLUMN";
 	}
 
 	public static String ROW_COLUMN_POSITION( SQLObject obj, Pair<String, String> row )
 	{
-		return obj.name + "_" + row.snd.toUpperCase() + "_COLUMN_POSITION";
+		return obj.name.toUpperCase() + "_" + row.snd.toUpperCase() + "_COLUMN_POSITION";
 	}
 
 	public static String ROW_COLUMN( SQLObject obj, String selector )
 	{
-		return obj.name + "_" + printSelect( selector ).toUpperCase() + "_COLUMN";
+		return obj.name.toUpperCase() + "_" + printSelect( selector ).toUpperCase() + "_COLUMN";
 	}
 
 	public static String ROW_COLUMN_POSITION( SQLObject obj, String selector )
 	{
-		return obj.name + "_" + printSelect( selector ).toUpperCase() + "_COLUMN_POSITION";
+		return obj.name.toUpperCase() + "_" + printSelect( selector ).toUpperCase() + "_COLUMN_POSITION";
 	}
 
 	public static String generateCreateStatement( Model model, Table table )
@@ -55,7 +55,15 @@ public class SqlUtil
 		while ( iterator.hasNext() )
 		{
 			Pair<String, String> row = iterator.next();
-			statement += "\t\t\t " + table.name.toUpperCase() + "_" + row.snd.toUpperCase() + "_COLUMN + \" " + getSQLtypeFor( row.fst );
+			String constr = table.findConstraint( row.snd );
+			if (constr == null)
+			{
+				statement += "\t\t\t " + ROW_COLUMN( table, row ) + " + \" " + getSQLtypeFor( row.fst );
+			}
+			else
+			{
+				statement += "\t\t\t " + ROW_COLUMN( table, row ) + " + \" " + getSQLtypeFor( row.fst ) + " " + constr;
+			}
 			if ( iterator.hasNext() )
 			{
 				statement += ",\" + \n";
