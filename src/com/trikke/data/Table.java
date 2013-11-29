@@ -14,19 +14,23 @@ public class Table extends SQLObject
 {
 	public static final String ANDROID_ID = "_id";
 
-	public ArrayList<Pair<String, String>> fields = new ArrayList<Pair<String, String>>();
+	public ArrayList<Triple<String, String, String>> fields = new ArrayList<Triple<String, String, String>>(  );
 	public ArrayList<Pair<String, String>> constraints = new ArrayList<Pair<String, String>>();
 
 	private boolean hasPrimaryKey;
+
+	private Pair<String, String> primaryKey = null;
 
 	public Table()
 	{
 
 	}
 
-	public void addField( String type, String name )
+	public void addField( String type, String name, String constraints )
 	{
-		fields.add( new Pair<String, String>( SqlUtil.getSQLtypeFor( type ), name ) );
+		if (type.equals( "autoincrement" ))
+			constraints = "primary key autoincrement";
+		fields.add( new Triple<String, String, String>( SqlUtil.getSQLtypeFor( type ), name, constraints ) );
 	}
 
 	public void addConstraint( String name, String constraint )
@@ -44,34 +48,24 @@ public class Table extends SQLObject
 		return "ALL" + name;
 	}
 
-	private String findType( String name )
+	public Triple<String, String, String> getFieldByName( String name )
 	{
-		for ( Pair<String, String> field : fields )
+		for (Triple<String, String, String> field : fields)
 		{
-			if ( field.snd.equals( name ) )
+			if (field.snd.toLowerCase().equals( name.toLowerCase() ))
 			{
-				return field.fst;
+				return field;
 			}
 		}
-
 		return null;
 	}
 
-	public String findConstraintForName( String name )
+	public Pair<String, String> getPrimaryKey()
 	{
-		for ( Pair<String, String> constr : constraints )
+		if (hasPrimaryKey)
 		{
-			if ( constr.fst.equals( name ) )
-			{
-				return constr.snd;
-			}
+			return primaryKey;
 		}
-
-		return null;
-	}
-
-	public Pair<String, String> UNIQUEROWID()
-	{
 		return new Pair<String, String>( "int", ANDROID_ID );
 	}
 
@@ -80,8 +74,9 @@ public class Table extends SQLObject
 		return hasPrimaryKey;
 	}
 
-	public void hasPrimaryKey( boolean hasPrimaryKey )
+	public void setPrimaryKey( String type, String name )
 	{
-		this.hasPrimaryKey = hasPrimaryKey;
+		this.hasPrimaryKey = true;
+		primaryKey = new Pair<String, String>( SqlUtil.getSQLtypeFor( type ), name );
 	}
 }

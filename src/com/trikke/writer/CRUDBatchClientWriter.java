@@ -1,8 +1,8 @@
 package com.trikke.writer;
 
 import com.trikke.data.Model;
-import com.trikke.data.Pair;
 import com.trikke.data.Table;
+import com.trikke.data.Triple;
 import com.trikke.util.SqlUtil;
 import com.trikke.util.Util;
 
@@ -112,7 +112,7 @@ public class CRUDBatchClientWriter extends Writer
 	{
 		// Default array params for all rows
 		ArrayList<String> params = new ArrayList<String>();
-		for ( Pair<String, String> row : table.fields )
+		for ( Triple<String, String, String> row : table.fields )
 		{
 
 			params.add( row.fst );
@@ -120,8 +120,8 @@ public class CRUDBatchClientWriter extends Writer
 		}
 
 		ArrayList<String> paramsWithUnique = new ArrayList<String>();
-		paramsWithUnique.add( table.UNIQUEROWID().fst );
-		paramsWithUnique.add( table.UNIQUEROWID().snd );
+		paramsWithUnique.add( table.getPrimaryKey().fst );
+		paramsWithUnique.add( table.getPrimaryKey().snd );
 
 		ArrayList<String> updateParams = new ArrayList<String>();
 		// TODO : add unique id
@@ -134,7 +134,7 @@ public class CRUDBatchClientWriter extends Writer
 		// Add through ContentProviderOperation
 		writer.beginMethod( "void", "add" + Util.capitalize( table.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), params.toArray( new String[params.size()] ) );
 		writer.emitStatement( "ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newInsert(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ")" );
-		for ( Pair<String, String> row : table.fields )
+		for ( Triple<String, String, String> row : table.fields )
 		{
 			writer.emitStatement( "operationBuilder.withValue(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.snd + ")" );
 		}
@@ -143,9 +143,9 @@ public class CRUDBatchClientWriter extends Writer
 
 		// remove with UNIQUE
 		writer.emitEmptyLine();
-		writer.beginMethod( "void", "remove" + Util.capitalize( table.name ) + "With" + Util.capitalize( table.UNIQUEROWID().snd ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), paramsWithUnique.toArray( new String[paramsWithUnique.size()] ) );
+		writer.beginMethod( "void", "remove" + Util.capitalize( table.name ) + "With" + Util.capitalize( table.getPrimaryKey().snd ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), paramsWithUnique.toArray( new String[paramsWithUnique.size()] ) );
 		writer.emitStatement( "ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newDelete(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ")" );
-		writer.emitStatement( "operationBuilder.withSelection(\"" + table.UNIQUEROWID().snd + "=?\", new String[]{String.valueOf(" + table.UNIQUEROWID().snd + ")})" );
+		writer.emitStatement( "operationBuilder.withSelection(\"" + table.getPrimaryKey().snd + "=?\", new String[]{String.valueOf(" + table.getPrimaryKey().snd + ")})" );
 		insertAddOpBlock();
 		writer.endMethod();
 
@@ -161,7 +161,7 @@ public class CRUDBatchClientWriter extends Writer
 		writer.emitEmptyLine();
 		writer.beginMethod( "void", "update" + Util.capitalize( table.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), updateParams.toArray( new String[updateParams.size()] ) );
 		writer.emitStatement( "ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ")" );
-		for ( Pair<String, String> row : table.fields )
+		for ( Triple<String, String, String> row : table.fields )
 		{
 			writer.emitStatement( "operationBuilder.withValue(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.snd + ")" );
 		}

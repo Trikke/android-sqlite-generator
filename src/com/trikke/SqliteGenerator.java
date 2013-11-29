@@ -4,6 +4,7 @@ import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import com.trikke.data.Model;
 import com.trikke.data.Table;
+import com.trikke.data.Triple;
 import com.trikke.data.View;
 import com.trikke.util.Util;
 import com.trikke.writer.CRUDBatchClientWriter;
@@ -215,15 +216,24 @@ public class SqliteGenerator
 		{
 			Table table = new Table();
 			table.name = name;
-			table.hasPrimaryKey( false );
 			for (JsonValue jsoninfo : jsontable.get( "fields" ).asArray())
 			{
 				JsonObject info = (JsonObject) jsoninfo;
 				String type = info.get( "type" ).asString();
 				if (type.toLowerCase().equals( "autoincrement" ))
-					table.hasPrimaryKey( true );
+					table.setPrimaryKey( type, info.get( "name" ).asString() );
 
-				table.addField( type, info.get( "name" ).asString() );
+				String constraints = null;
+				if (info.names().contains( "constraints" ))
+				{
+					for (JsonValue constraint : info.get( "constraints" ).asArray())
+					{
+						constraints += " " + constraint.asString();
+						if (constraint.asString().toLowerCase().contains( "primary key" ))
+							table.setPrimaryKey( type, info.get( "name" ).asString() );
+					}
+				}
+				table.addField( type, info.get( "name" ).asString(), constraints );
 			}
 			if (jsontable.names().contains( "constraints" ))
 			{
@@ -237,7 +247,9 @@ public class SqliteGenerator
 						if (table.hasPrimaryKey())
 							continue;
 
-						table.hasPrimaryKey( true );
+						final Triple<String,String,String> field = table.getFieldByName( info.get( "name" ).asString() );
+						if (field != null)
+							table.setPrimaryKey( field.fst, field.snd );
 					}
 					table.addConstraint( info.get( "name" ).asString(), definition );
 				}

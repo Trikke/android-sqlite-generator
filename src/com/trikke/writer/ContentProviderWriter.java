@@ -164,7 +164,7 @@ public class ContentProviderWriter extends Writer
 
 		for ( Table table : mModel.getTables() )
 		{
-			writer.emitStatement( "\tcase " + table.getAllName() + ":\ncase " + table.getSingleName() + ":\n\treturn \"" + table.UNIQUEROWID().snd + "\"");
+			writer.emitStatement( "\tcase " + table.getAllName() + ":\ncase " + table.getSingleName() + ":\n\treturn \"" + table.getPrimaryKey().snd + "\"");
 		}
 
 		writer.emitStatement( "default: break" );
@@ -337,7 +337,7 @@ public class ContentProviderWriter extends Writer
 
 		for ( Table table : mModel.getTables() )
 		{
-			writer.emitStatement( "\tcase " + table.getSingleName() + ":" + "\n\tUNIQUEID = \"" + table.UNIQUEROWID().snd + "\";\n\trowID = uri.getPathSegments().get(1);\n\tselection = UNIQUEID + \"=\" + rowID + (!TextUtils.isEmpty(selection) ? \" AND (\" + selection + ')' : \"\")" );
+			writer.emitStatement( "\tcase " + table.getSingleName() + ":" + "\n\tUNIQUEID = \"" + table.getPrimaryKey().snd + "\";\n\trowID = uri.getPathSegments().get(1);\n\tselection = UNIQUEID + \"=\" + rowID + (!TextUtils.isEmpty(selection) ? \" AND (\" + selection + ')' : \"\")" );
 		}
 
 		writer.emitStatement( "default: break" );
@@ -416,7 +416,7 @@ public class ContentProviderWriter extends Writer
 
 		for ( Table table : mModel.getTables() )
 		{
-			writer.emitStatement( "\tcase " + table.getSingleName() + ":" + "\n\tUNIQUEID = \"" + table.UNIQUEROWID().snd + "\";\n\trowID = uri.getPathSegments().get(1);\n\tselection = UNIQUEID + \"=\" + rowID + (!TextUtils.isEmpty(selection) ? \" AND (\" + selection + ')' : \"\")" );
+			writer.emitStatement( "\tcase " + table.getSingleName() + ":" + "\n\tUNIQUEID = \"" + table.getPrimaryKey().snd + "\";\n\trowID = uri.getPathSegments().get(1);\n\tselection = UNIQUEID + \"=\" + rowID + (!TextUtils.isEmpty(selection) ? \" AND (\" + selection + ')' : \"\")" );
 		}
 		writer.emitStatement( "default: break" );
 		writer.endControlFlow();

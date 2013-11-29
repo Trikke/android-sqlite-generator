@@ -1,9 +1,6 @@
 package com.trikke.writer;
 
-import com.trikke.data.Model;
-import com.trikke.data.Pair;
-import com.trikke.data.Table;
-import com.trikke.data.View;
+import com.trikke.data.*;
 import com.trikke.util.SqlUtil;
 
 import javax.lang.model.element.Modifier;
@@ -85,7 +82,7 @@ public class DatabaseWriter extends Writer
 			writer.emitField( "String", SqlUtil.IDENTIFIER( table ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "\"" + table.name + "\"" );
 
 			int index = 1;
-			for ( Pair<String, String> row : table.fields )
+			for ( Triple<String, String, String> row : table.fields )
 			{
 				writer.emitField( "String", SqlUtil.ROW_COLUMN( table, row ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "\"" + row.snd + "\"" );
 				writer.emitField( "int", SqlUtil.ROW_COLUMN_POSITION( table, row ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "" + index );

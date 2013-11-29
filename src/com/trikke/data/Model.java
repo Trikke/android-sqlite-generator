@@ -10,8 +10,6 @@ import java.util.ArrayList;
  */
 public class Model
 {
-	private static final ArrayList<String> validStrategies = new ArrayList<String>(  );
-
 	private String classPackage;
 	private String contentAuthority;
 	private String dbName;
@@ -19,16 +17,6 @@ public class Model
 	private String contentProviderName;
 	private ArrayList<Table> tables = new ArrayList<Table>();
 	private ArrayList<View> views = new ArrayList<View>();
-
-	public Model()
-	{
-		validStrategies.add( "ROLLBACK" );
-		validStrategies.add( "ABORT" );
-		validStrategies.add( "FAIL" );
-		validStrategies.add( "IGNORE" );
-		validStrategies.add( "REPLACE" );
-		validStrategies.add( "UPSERT" );
-	}
 
 	public void addTable( Table table )
 	{

@@ -1,9 +1,6 @@
 package com.trikke.writer;
 
-import com.trikke.data.Model;
-import com.trikke.data.Pair;
-import com.trikke.data.Table;
-import com.trikke.data.View;
+import com.trikke.data.*;
 import com.trikke.util.SqlUtil;
 import com.trikke.util.Util;
 
@@ -91,9 +88,8 @@ public class CRUDClientWriter extends Writer
 	{
 		// Default array params for all rows
 		ArrayList<String> params = new ArrayList<String>();
-		for ( Pair<String, String> row : table.fields )
+		for ( Triple<String, String, String> row : table.fields )
 		{
-
 			params.add( row.fst );
 			params.add( row.snd );
 		}
@@ -106,8 +102,8 @@ public class CRUDClientWriter extends Writer
 		ArrayList<String> paramsWithUnique = new ArrayList<String>();
 		paramsWithUnique.add( "Context" );
 		paramsWithUnique.add( "c" );
-		paramsWithUnique.add( table.UNIQUEROWID().fst );
-		paramsWithUnique.add( table.UNIQUEROWID().snd );
+		paramsWithUnique.add( table.getPrimaryKey().fst );
+		paramsWithUnique.add( table.getPrimaryKey().snd );
 
 		ArrayList<String> updateParams = new ArrayList<String>();
 		updateParams.add( "Context" );
@@ -130,16 +126,16 @@ public class CRUDClientWriter extends Writer
 		writer.emitEmptyLine();
 
 		// Normal Get with UNIQUE
-		writer.beginMethod( "Cursor", "get" + Util.capitalize( table.name ) + "With" + Util.capitalize( table.UNIQUEROWID().snd ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), paramsWithUnique.toArray( new String[paramsWithUnique.size()] ) );
+		writer.beginMethod( "Cursor", "get" + Util.capitalize( table.name ) + "With" + Util.capitalize( table.getPrimaryKey().snd ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), paramsWithUnique.toArray( new String[paramsWithUnique.size()] ) );
 		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
-		writer.emitStatement( "return cr.query(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ", null, \"" + table.UNIQUEROWID().snd + "=?\", new String[]{String.valueOf(" + table.UNIQUEROWID().snd + ")},null)" );
+		writer.emitStatement( "return cr.query(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ", null, \"" + table.getPrimaryKey().snd + "=?\", new String[]{String.valueOf(" + table.getPrimaryKey().snd + ")},null)" );
 		writer.endMethod();
 
 		// Normal Add
 		writer.emitEmptyLine();
 		writer.beginMethod( "Uri", "add" + Util.capitalize( table.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), paramsWithContext.toArray( new String[paramsWithContext.size()] ) );
 		writer.emitStatement( "ContentValues contentValues = new ContentValues()" );
-		for ( Pair<String, String> row : table.fields )
+		for ( Triple<String, String, String> row : table.fields )
 		{
 			writer.emitStatement( "contentValues.put(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.snd + ")" );
 		}
@@ -149,9 +145,9 @@ public class CRUDClientWriter extends Writer
 
 		// Normal remove with UNIQUE
 		writer.emitEmptyLine();
-		writer.beginMethod( "int", "remove" + Util.capitalize( table.name ) + "With" + Util.capitalize( table.UNIQUEROWID().snd ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), paramsWithUnique.toArray( new String[paramsWithUnique.size()] ) );
+		writer.beginMethod( "int", "remove" + Util.capitalize( table.name ) + "With" + Util.capitalize( table.getPrimaryKey().snd ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), paramsWithUnique.toArray( new String[paramsWithUnique.size()] ) );
 		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
-		writer.emitStatement( "return cr.delete(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ", \"" + table.UNIQUEROWID().snd + "=?\", new String[]{String.valueOf(" + table.UNIQUEROWID().snd + ")})" );
+		writer.emitStatement( "return cr.delete(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ", \"" + table.getPrimaryKey().snd + "=?\", new String[]{String.valueOf(" + table.getPrimaryKey().snd + ")})" );
 		writer.endMethod();
 
 		// Remove All results
@@ -167,7 +163,7 @@ public class CRUDClientWriter extends Writer
 		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
 
 		String arrays = "";
-		for ( Pair<String, String> row : table.fields )
+		for ( Triple<String, String, String> row : table.fields )
 		{
 			arrays += mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + ",\n";
 		}
@@ -183,11 +179,11 @@ public class CRUDClientWriter extends Writer
 		writer.emitEmptyLine();
 		writer.beginMethod( "int", "update" + Util.capitalize( table.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), updateParams.toArray( new String[updateParams.size()] ) );
 		writer.emitStatement( "ContentValues contentValues = new ContentValues()" );
-		for ( Pair<String, String> row : table.fields )
+		for ( Triple<String, String, String> row : table.fields )
 		{
 			writer.emitStatement( "contentValues.put(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.snd + ")" );
 		}
-		writer.emitStatement( "Uri rowURI = ContentUris.withAppendedId(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + "," + table.UNIQUEROWID().snd + ")" );
+		writer.emitStatement( "Uri rowURI = ContentUris.withAppendedId(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + "," + table.getPrimaryKey().snd + ")" );
 		writer.emitStatement( "String where = null" );
 		writer.emitStatement( "String whereArgs[] = null" );
 		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
