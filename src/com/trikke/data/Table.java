@@ -1,6 +1,6 @@
 package com.trikke.data;
 
-import com.trikke.util.Util;
+import com.trikke.util.SqlUtil;
 
 import java.util.ArrayList;
 
@@ -17,7 +17,7 @@ public class Table extends SQLObject
 	public ArrayList<Pair<String, String>> fields = new ArrayList<Pair<String, String>>();
 	public ArrayList<Pair<String, String>> constraints = new ArrayList<Pair<String, String>>();
 
-	public String uniqueKey;
+	private boolean hasPrimaryKey;
 
 	public Table()
 	{
@@ -26,7 +26,7 @@ public class Table extends SQLObject
 
 	public void addField( String type, String name )
 	{
-		fields.add( new Pair<String, String>( Util.getValidType(type), name ) );
+		fields.add( new Pair<String, String>( SqlUtil.getSQLtypeFor( type ), name ) );
 	}
 
 	public void addConstraint( String name, String constraint )
@@ -57,7 +57,7 @@ public class Table extends SQLObject
 		return null;
 	}
 
-	public String findConstraint( String name )
+	public String findConstraintForName( String name )
 	{
 		for ( Pair<String, String> constr : constraints )
 		{
@@ -72,12 +72,16 @@ public class Table extends SQLObject
 
 	public Pair<String, String> UNIQUEROWID()
 	{
-		if ( uniqueKey != null )
-		{
-			return new Pair<String, String>( String.valueOf( findType( uniqueKey ) ), uniqueKey );
-		} else
-		{
-			return new Pair<String, String>( "int", ANDROID_ID );
-		}
+		return new Pair<String, String>( "int", ANDROID_ID );
+	}
+
+	public boolean hasPrimaryKey()
+	{
+		return hasPrimaryKey;
+	}
+
+	public void hasPrimaryKey( boolean hasPrimaryKey )
+	{
+		this.hasPrimaryKey = hasPrimaryKey;
 	}
 }

@@ -17,7 +17,6 @@ public class Model
 	private String dbName;
 	private int dbVersion;
 	private String contentProviderName;
-	private String conflictStrategy = "REPLACE";
 	private ArrayList<Table> tables = new ArrayList<Table>();
 	private ArrayList<View> views = new ArrayList<View>();
 
@@ -124,30 +123,5 @@ public class Model
 	public void setViews( ArrayList<View> views )
 	{
 		this.views = views;
-	}
-
-	public String getConflictStrategy()
-	{
-		return conflictStrategy;
-	}
-
-	public String getConflictStrategyClause()
-	{
-		if (conflictStrategy.equals( "UPSERT" ))
-			return "IGNORE";
-
-		return conflictStrategy;
-	}
-
-	public void setConflictStrategy( String conflictStrategy )
-	{
-		if (validStrategies.contains( conflictStrategy.toUpperCase() ))
-		{
-			this.conflictStrategy = conflictStrategy.toUpperCase();
-		}
-		else
-		{
-			throw new RuntimeException( conflictStrategy.toUpperCase() + " is not a valid conflict strategy." );
-		}
 	}
 }

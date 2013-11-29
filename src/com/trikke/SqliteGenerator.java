@@ -129,15 +129,6 @@ public class SqliteGenerator
 			mModel.setDbVersion( config.get( "databaseVersion" ).asInt() );
 			mModel.setContentProviderName( config.get( "contentproviderName" ).asString() );
 
-			try
-			{
-				mModel.setConflictStrategy( config.get( "conflictStrategy" ).asString() );
-			} catch ( RuntimeException ex )
-			{
-				System.err.println( ex.getMessage() );
-				System.exit( 1 );
-			}
-
 		} catch ( IOException ex )
 		{
 			System.err.println( ex.getMessage() );
@@ -206,7 +197,7 @@ public class SqliteGenerator
 			System.exit( 1 );
 		} catch ( NullPointerException npe )
 		{
-			System.err.println( "The object "+name+" is not the parseble structure i expect it to be, please see formatting guidelines." );
+			System.err.println( "The object "+name+" is not the parsable structure i expect it to be, please see formatting guidelines." );
 			System.exit( 1 );
 		}
 	}
@@ -224,27 +215,41 @@ public class SqliteGenerator
 		{
 			Table table = new Table();
 			table.name = name;
+			table.hasPrimaryKey( false );
 			for (JsonValue jsoninfo : jsontable.get( "fields" ).asArray())
 			{
 				JsonObject info = (JsonObject) jsoninfo;
-				table.addField( info.get( "type" ).asString(), info.get( "name" ).asString() );
+				String type = info.get( "type" ).asString();
+				if (type.toLowerCase().equals( "autoincrement" ))
+					table.hasPrimaryKey( true );
+
+				table.addField( type, info.get( "name" ).asString() );
 			}
 			if (jsontable.names().contains( "constraints" ))
 			{
 				for (JsonValue jsoninfo : jsontable.get( "constraints" ).asArray())
 				{
 					JsonObject info = (JsonObject) jsoninfo;
-					table.addConstraint( info.get( "name" ).asString(), info.get( "definition" ).asString() );
+					String definition = info.get( "definition" ).asString();
+					if (definition.toLowerCase().contains( "primary key" ))
+					{
+						// skip if primary key already set
+						if (table.hasPrimaryKey())
+							continue;
+
+						table.hasPrimaryKey( true );
+					}
+					table.addConstraint( info.get( "name" ).asString(), definition );
 				}
 			}
 			mModel.addTable( table );
 		}
 	}
 
-	private void parseViewFromFile(final JsonObject jsontable, final String name)
+	private void parseViewFromFile(final JsonObject jsonview, final String name)
 	{
 		System.out.println("found view > "+name);
-		boolean containsFields = jsontable.names().contains( "selects" );
+		boolean containsFields = jsonview.names().contains( "selects" );
 		if (!containsFields)
 		{
 			System.err.println( "This view contains no selects." );
@@ -254,27 +259,31 @@ public class SqliteGenerator
 		{
 			View view = new View();
 			view.name = name;
-			for (JsonValue jsoninfo : jsontable.get( "selects" ).asArray())
+			for (JsonValue jsoninfo : jsonview.get( "selects" ).asArray())
 			{
 				JsonObject info = (JsonObject) jsoninfo;
 				view.addSelect( (info.names().contains( "name" )) ? info.get( "name" ).asString() : null, info.get( "from" ).asString() );
 			}
-			for (JsonValue jsoninfo : jsontable.get( "from" ).asArray())
+			for (JsonValue jsoninfo : jsonview.get( "from" ).asArray())
 			{
 				view.addFromTable( jsoninfo.asString() );
 			}
-			for (JsonValue jsoninfo : jsontable.get( "on" ).asArray())
+			for (JsonValue jsoninfo : jsonview.get( "on" ).asArray())
 			{
 				view.addJoinOn( jsoninfo.asString() );
 			}
-			for (JsonValue jsoninfo : jsontable.get( "order" ).asArray())
+			for (JsonValue jsoninfo : jsonview.get( "order" ).asArray())
 			{
 				JsonObject info = (JsonObject) jsoninfo;
 				view.addOrder( info.get( "by" ).asString(), (info.names().contains( "sort" )) ? info.get( "sort" ).asString() : "ASC" );
 			}
-			for (JsonValue jsoninfo : jsontable.get( "group" ).asArray())
+			for (JsonValue jsoninfo : jsonview.get( "group" ).asArray())
 			{
 				view.addGroup( jsoninfo.asString() );
+			}
+			if (jsonview.names().contains( "join" ))
+			{
+				view.jointype = jsonview.get( "join" ).asString();
 			}
 			mModel.addView( view );
 		}

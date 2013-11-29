@@ -337,7 +337,9 @@ public class ContentProviderWriter extends Writer
 		writer.emitStatement( "String nullColumnHack = null" );
 		writer.emitStatement( "long id = db.insert(getTableNameFromUri(uri), nullColumnHack, values)" );
 
-		if (mModel.getConflictStrategy().equals( "UPSERT" ))
+		// TODO : fix upsert
+		/*
+		if (true)
 		{
 			writer.emitEmptyLine();
 			writer.beginControlFlow( "if (id == -1)" );
@@ -361,6 +363,7 @@ public class ContentProviderWriter extends Writer
 			writer.endControlFlow();
 			writer.endControlFlow();
 		}
+		*/
 
 		writer.emitEmptyLine();
 		writer.beginControlFlow( "if (id > -1)" );

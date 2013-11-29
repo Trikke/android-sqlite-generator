@@ -45,37 +45,36 @@ public class SqlUtil
 
 	public static String generateCreateStatement( Model model, Table table )
 	{
-		String statement = "create table " + table.name + " (";
+		String statement = "CREATE TABLE " + table.name + " (\" + \n";
 
 		// default android row
-		statement += Table.ANDROID_ID + " integer primary key autoincrement,\" + \n";
+		if (!table.hasPrimaryKey())
+		statement += "\t\t\t \"" + Table.ANDROID_ID + " integer primary key autoincrement,\" + \n";
 
-		Iterator<Pair<String, String>> iterator = table.fields.iterator();
+		Iterator<Pair<String, String>> fieldsiter = table.fields.iterator();
 
-		while ( iterator.hasNext() )
+		while ( fieldsiter.hasNext() )
 		{
-			Pair<String, String> row = iterator.next();
-			String constr = table.findConstraint( row.snd );
-			if (constr == null)
-			{
-				statement += "\t\t\t " + ROW_COLUMN( table, row ) + " + \" " + getSQLtypeFor( row.fst );
-			}
-			else
-			{
-				statement += "\t\t\t " + ROW_COLUMN( table, row ) + " + \" " + getSQLtypeFor( row.fst ) + " " + constr;
-			}
-			if ( iterator.hasNext() )
+			Pair<String, String> row = fieldsiter.next();
+
+			statement += "\t\t\t " + ROW_COLUMN( table, row ) + " + \" " +  row.fst;
+
+			if ( fieldsiter.hasNext() || !table.constraints.isEmpty() )
 			{
 				statement += ",\" + \n";
 			}
 		}
 
-		if ( table.uniqueKey != null )
+		Iterator<Pair<String, String>> constraintiter = table.constraints.iterator();
+
+		while ( constraintiter.hasNext() )
 		{
-			statement += ",\" + \n\t\t\t\" UNIQUE (" + table.uniqueKey + ") ON CONFLICT "+model.getConflictStrategyClause()+");";
-		} else
-		{
-			statement += ");";
+			Pair<String, String> constraint = constraintiter.next();
+			statement += "\t\t\t \"CONSTRAINT " + constraint.fst + " " + constraint.snd;
+			if ( constraintiter.hasNext() )
+			{
+				statement += ",\" + \n";
+			}
 		}
 
 		return statement;
@@ -179,23 +178,7 @@ public class SqlUtil
 
 	public static String getSQLtypeFor( String type )
 	{
-		type = Util.sanitize( type, false );
-		if ( type.equals( "Float" ) )
-		{
-			return "float";
-		}
-		if ( type.equals( "Double" ) )
-		{
-			return "real";
-		}
-		if ( type.equals( "Long" ) )
-		{
-			return "integer";
-		}
-		if ( type.equals( "Integer" ) )
-		{
-			return "integer";
-		}
+		type = Util.sanitize( type, false ).toLowerCase();
 		if ( type.equals( "Date" ) )
 		{
 			return "integer";
@@ -216,27 +199,36 @@ public class SqlUtil
 		{
 			return "integer";
 		}
-
-		if ( type.equals( "Boolean" ) )
-		{
-			return "boolean";
-		}
-
 		if ( type.equals( "boolean" ) )
 		{
 			return "boolean";
 		}
-
-		if ( type.equals( "String" ) )
-		{
-			return "text";
-		}
-
 		if ( type.equals( "string" ) )
 		{
 			return "text";
 		}
-
+		if (type.equals( "null" ))
+		{
+			return "null";
+		}
+		if ( type.equals( "integer" ) )
+		{
+			return "integer";
+		}
+		if ( type.equals( "real" ) )
+		{
+			return "real";
+		}
+		if ( type.equals( "text" ) )
+		{
+			return "text";
+		}
+		// special case
+		if ( type.equals( "autoincrement" ) )
+		{
+			return "integer autoincrement";
+		}
+		// fallback to blob
 		return "blob";
 	}
 }

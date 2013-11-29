@@ -112,11 +112,7 @@ public class CRUDClientWriter extends Writer
 		ArrayList<String> updateParams = new ArrayList<String>();
 		updateParams.add( "Context" );
 		updateParams.add( "c" );
-		if ( table.uniqueKey == null )
-		{
-			updateParams.add( table.UNIQUEROWID().fst );
-			updateParams.add( table.UNIQUEROWID().snd );
-		}
+		// TODO : add unique id
 		updateParams.addAll( params );
 
 

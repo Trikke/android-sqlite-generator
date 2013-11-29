@@ -124,11 +124,7 @@ public class CRUDBatchClientWriter extends Writer
 		paramsWithUnique.add( table.UNIQUEROWID().snd );
 
 		ArrayList<String> updateParams = new ArrayList<String>();
-		if ( table.uniqueKey == null )
-		{
-			updateParams.add( table.UNIQUEROWID().fst );
-			updateParams.add( table.UNIQUEROWID().snd );
-		}
+		// TODO : add unique id
 		updateParams.addAll( params );
 
 		writer.emitEmptyLine();
