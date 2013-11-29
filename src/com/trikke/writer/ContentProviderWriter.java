@@ -47,7 +47,7 @@ public class ContentProviderWriter extends Writer
 
 	private void emitImports() throws IOException
 	{
-		writer.emitImports( "java.util.Map","java.util.ArrayList", "android.text.TextUtils", "android.content.ContentProvider", "android.content.ContentUris", "android.content.ContentValues", "android.content.UriMatcher", "android.database.Cursor", "android.database.sqlite.SQLiteConstraintException", "android.database.sqlite.SQLiteDatabase", "android.database.sqlite.SQLiteException", "android.database.sqlite.SQLiteQueryBuilder","android.database.sqlite.SQLiteStatement", "android.net.Uri", "android.text.TextUtils", "android.util.Log" );
+		writer.emitImports( "java.util.Map","java.util.ArrayList", "android.text.TextUtils", "android.content.*", "android.database.Cursor", "android.database.sqlite.SQLiteConstraintException", "android.database.sqlite.SQLiteDatabase", "android.database.sqlite.SQLiteException", "android.database.sqlite.SQLiteQueryBuilder","android.database.sqlite.SQLiteStatement", "android.net.Uri", "android.text.TextUtils", "android.util.Log" );
 		writer.emitEmptyLine();
 	}
 
@@ -297,6 +297,32 @@ public class ContentProviderWriter extends Writer
 		writer.emitStatement( "cursor.setNotificationUri(getContext().getContentResolver(), uri)" );
 		writer.emitStatement( "return cursor" );
 
+		writer.endMethod();
+
+
+		ArrayList<String> throwTypes = new ArrayList<String>();
+		throwTypes.add( "OperationApplicationException" );
+		ArrayList<String> parameters = new ArrayList<String>();
+		parameters.add( "ArrayList <ContentProviderOperation>");
+		parameters.add( "operations" );
+
+		writer.emitAnnotation( "Override" );
+		writer.beginMethod( "ContentProviderResult[]", "applyBatch",EnumSet.of( Modifier.PUBLIC ), parameters, throwTypes);
+		writer.emitStatement( "SQLiteDatabase db = mLocalDatabase.getWritableDatabase()");
+		writer.emitStatement( "db.beginTransaction()");
+		writer.emitStatement( "final int numOperations = operations.size()");
+		writer.emitStatement( "final ContentProviderResult[] results = new ContentProviderResult[numOperations]");
+		writer.emitStatement( "Log.i(TAG, \"Applying a batch of \" + numOperations + \" operations.\")" );
+		writer.beginControlFlow( "try" );
+
+		writer.beginControlFlow( "for (int i = 0; i < numOperations; i++)" );
+		writer.emitStatement( "results[i] = operations.get(i).apply(this, results, i)" );
+		writer.endControlFlow();
+		writer.emitStatement( "db.setTransactionSuccessful()" );
+		writer.nextControlFlow( "finally" );
+		writer.emitStatement( "db.endTransaction()" );
+		writer.endControlFlow();
+		writer.emitStatement( "return results" );
 		writer.endMethod();
 
 		writer.emitEmptyLine();
