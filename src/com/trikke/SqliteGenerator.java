@@ -187,12 +187,7 @@ public class SqliteGenerator
 				System.err.println( "The object " + name + " contains no valid data. I can not guess if this is a table or a view." );
 				System.exit( 1 );
 			}
-
-		} catch ( IOException e )
-		{
-			System.err.println( e.getMessage() );
-			System.exit( 1 );
-		} catch ( NullPointerException npe )
+		} catch ( Exception npe )
 		{
 			System.err.println( "The object " + name + " is not the parsable structure i expect it to be, please see formatting guidelines." );
 			System.exit( 1 );
