@@ -15,7 +15,7 @@ public class Triple<T, U, V>
 
 	public static <T, U, V> Triple<T, U, V> of( T t, U u, V v )
 	{
-		return new Triple<T,U,V>( t, u, v );
+		return new Triple<T, U, V>( t, u, v );
 	}
 
 	public String toString()

@@ -81,7 +81,7 @@ public class Util
 		return clean.toArray( new String[clean.size()] );
 	}
 
-	public static JsonObject getJsonFromFile(String filePath) throws IOException
+	public static JsonObject getJsonFromFile( String filePath ) throws IOException
 	{
 		InputStream file = new FileInputStream( filePath );
 		InputStream buffer = new BufferedInputStream( file );

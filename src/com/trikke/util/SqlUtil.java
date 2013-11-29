@@ -48,8 +48,10 @@ public class SqlUtil
 		String statement = "CREATE TABLE " + table.name + " (\" + \n";
 
 		// default android row
-		if (!table.hasPrimaryKey())
-		statement += "\t\t\t \"" + Table.ANDROID_ID + " integer primary key autoincrement,\" + \n";
+		if ( !table.hasPrimaryKey() )
+		{
+			statement += "\t\t\t \"" + Table.ANDROID_ID + " integer primary key autoincrement,\" + \n";
+		}
 
 		Iterator<Triple<String, String, String>> fieldsiter = table.fields.iterator();
 
@@ -57,10 +59,12 @@ public class SqlUtil
 		{
 			Triple<String, String, String> row = fieldsiter.next();
 
-			statement += "\t\t\t " + ROW_COLUMN( table, row ) + " + \" " +  row.fst;
+			statement += "\t\t\t " + ROW_COLUMN( table, row ) + " + \" " + row.fst;
 
-			if (row.lst != null)
+			if ( row.lst != null )
+			{
 				statement += " " + row.lst;
+			}
 
 			if ( fieldsiter.hasNext() || !table.constraints.isEmpty() )
 			{
@@ -210,7 +214,7 @@ public class SqlUtil
 		{
 			return "text";
 		}
-		if (type.equals( "null" ))
+		if ( type.equals( "null" ) )
 		{
 			return "null";
 		}

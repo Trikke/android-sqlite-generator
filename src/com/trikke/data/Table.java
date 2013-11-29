@@ -14,7 +14,7 @@ public class Table extends SQLObject
 {
 	public static final String ANDROID_ID = "_id";
 
-	public ArrayList<Triple<String, String, String>> fields = new ArrayList<Triple<String, String, String>>(  );
+	public ArrayList<Triple<String, String, String>> fields = new ArrayList<Triple<String, String, String>>();
 	public ArrayList<Pair<String, String>> constraints = new ArrayList<Pair<String, String>>();
 
 	private boolean hasPrimaryKey;
@@ -28,8 +28,10 @@ public class Table extends SQLObject
 
 	public void addField( String type, String name, String constraints )
 	{
-		if (type.equals( "autoincrement" ))
+		if ( type.equals( "autoincrement" ) )
+		{
 			constraints = "primary key autoincrement";
+		}
 		fields.add( new Triple<String, String, String>( SqlUtil.getSQLtypeFor( type ), name, constraints ) );
 	}
 
@@ -50,9 +52,9 @@ public class Table extends SQLObject
 
 	public Triple<String, String, String> getFieldByName( String name )
 	{
-		for (Triple<String, String, String> field : fields)
+		for ( Triple<String, String, String> field : fields )
 		{
-			if (field.snd.toLowerCase().equals( name.toLowerCase() ))
+			if ( field.snd.toLowerCase().equals( name.toLowerCase() ) )
 			{
 				return field;
 			}
@@ -62,7 +64,7 @@ public class Table extends SQLObject
 
 	public Pair<String, String> getPrimaryKey()
 	{
-		if (hasPrimaryKey)
+		if ( hasPrimaryKey )
 		{
 			return primaryKey;
 		}

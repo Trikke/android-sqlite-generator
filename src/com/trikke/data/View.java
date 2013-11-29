@@ -19,31 +19,31 @@ public class View extends SQLObject
 	private ArrayList<String> groupfields = new ArrayList<String>();
 	public ArrayList<Pair<String, String>> fields = new ArrayList<Pair<String, String>>();
 
-	public void addSelect(String name, String from)
+	public void addSelect( String name, String from )
 	{
-		if (name == null)
+		if ( name == null )
 		{
-			name = from.split("\\.")[1];
+			name = from.split( "\\." )[1];
 		}
-		fields.add( new Pair<String, String>( from, name ));
+		fields.add( new Pair<String, String>( from, name ) );
 	}
 
-	public void addFromTable(String name)
+	public void addFromTable( String name )
 	{
 		fromtables.add( name );
 	}
 
-	public void addJoinOn(String name)
+	public void addJoinOn( String name )
 	{
 		joinonfields.add( name );
 	}
 
-	public void addOrder(String by, String order)
+	public void addOrder( String by, String order )
 	{
 		orderfields.put( by, order );
 	}
 
-	public void addGroup(String by)
+	public void addGroup( String by )
 	{
 		groupfields.add( by );
 	}
