@@ -90,7 +90,7 @@ public class CRUDClientWriter extends Writer
 		ArrayList<String> params = new ArrayList<String>();
 		for ( Triple<String, String, String> row : table.fields )
 		{
-			params.add( row.fst );
+			params.add( SqlUtil.getJavaTypeFor( row.fst ) );
 			params.add( row.snd );
 		}
 
@@ -102,13 +102,14 @@ public class CRUDClientWriter extends Writer
 		ArrayList<String> paramsWithUnique = new ArrayList<String>();
 		paramsWithUnique.add( "Context" );
 		paramsWithUnique.add( "c" );
-		paramsWithUnique.add( table.getPrimaryKey().fst );
+		paramsWithUnique.add( SqlUtil.getJavaTypeFor( table.getPrimaryKey().fst ) );
 		paramsWithUnique.add( table.getPrimaryKey().snd );
 
 		ArrayList<String> updateParams = new ArrayList<String>();
 		updateParams.add( "Context" );
 		updateParams.add( "c" );
-		// TODO : add unique id
+		updateParams.add( SqlUtil.getJavaTypeFor( table.getPrimaryKey().fst ) );
+		updateParams.add( table.getPrimaryKey().snd );
 		updateParams.addAll( params );
 
 
@@ -125,7 +126,7 @@ public class CRUDClientWriter extends Writer
 		writer.emitJavadoc( table.name + " OPERATIONS" );
 		writer.emitEmptyLine();
 
-		// Normal Get with UNIQUE
+		// Normal Get with primary
 		writer.beginMethod( "Cursor", "get" + Util.capitalize( table.name ) + "With" + Util.capitalize( table.getPrimaryKey().snd ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), paramsWithUnique.toArray( new String[paramsWithUnique.size()] ) );
 		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
 		writer.emitStatement( "return cr.query(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ", null, \"" + table.getPrimaryKey().snd + "=?\", new String[]{String.valueOf(" + table.getPrimaryKey().snd + ")},null)" );
@@ -143,7 +144,7 @@ public class CRUDClientWriter extends Writer
 		writer.emitStatement( "return cr.insert(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ", contentValues)" );
 		writer.endMethod();
 
-		// Normal remove with UNIQUE
+		// Normal remove with primary
 		writer.emitEmptyLine();
 		writer.beginMethod( "int", "remove" + Util.capitalize( table.name ) + "With" + Util.capitalize( table.getPrimaryKey().snd ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), paramsWithUnique.toArray( new String[paramsWithUnique.size()] ) );
 		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );

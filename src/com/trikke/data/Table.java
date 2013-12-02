@@ -32,7 +32,7 @@ public class Table extends SQLObject
 		{
 			constraints = "primary key autoincrement";
 		}
-		fields.add( new Triple<String, String, String>( SqlUtil.getSQLtypeFor( type ), name, constraints ) );
+		fields.add( new Triple<String, String, String>( SqlUtil.getJavaTypeFor( type ), name, constraints ) );
 	}
 
 	public void addConstraint( String name, String constraint )
@@ -79,6 +79,6 @@ public class Table extends SQLObject
 	public void setPrimaryKey( String type, String name )
 	{
 		this.hasPrimaryKey = true;
-		primaryKey = new Pair<String, String>( SqlUtil.getSQLtypeFor( type ), name );
+		primaryKey = new Pair<String, String>( SqlUtil.getJavaTypeFor( type ), name );
 	}
 }

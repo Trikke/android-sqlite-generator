@@ -97,11 +97,11 @@ public class ContentProviderWriter extends Writer
 		writer.emitEmptyLine();
 		for ( Table table : mModel.getTables() )
 		{
-			writer.emitField( "Uri", SqlUtil.URI( table ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "Uri.parse(\"content://" + mModel.getContentAuthority() + "/" + table.name.toLowerCase() + "\")" );
+			writer.emitField( "Uri", SqlUtil.URI( table ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "Uri.parse(\"content://" + mModel.getContentAuthority() + "/" + table.name + "\")" );
 		}
 		for ( View view : mModel.getViews() )
 		{
-			writer.emitField( "Uri", SqlUtil.URI( view ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "Uri.parse(\"content://" + mModel.getContentAuthority() + "/" + view.name.toLowerCase() + "\")" );
+			writer.emitField( "Uri", SqlUtil.URI( view ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "Uri.parse(\"content://" + mModel.getContentAuthority() + "/" + view.name + "\")" );
 		}
 		writer.emitEmptyLine();
 	}
@@ -115,13 +115,13 @@ public class ContentProviderWriter extends Writer
 
 		for ( Table table : mModel.getTables() )
 		{
-			writer.emitStatement( "uriMatcher.addURI(\"" + mModel.getContentAuthority() + "\", \"" + table.name.toLowerCase() + "\", " + table.getAllName() + ")" );
-			writer.emitStatement( "uriMatcher.addURI(\"" + mModel.getContentAuthority() + "\", \"" + table.name.toLowerCase() + "/#\", " + table.getSingleName() + ")" );
+			writer.emitStatement( "uriMatcher.addURI(\"" + mModel.getContentAuthority() + "\", \"" + table.name + "\", " + table.getAllName() + ")" );
+			writer.emitStatement( "uriMatcher.addURI(\"" + mModel.getContentAuthority() + "\", \"" + table.name + "/#\", " + table.getSingleName() + ")" );
 		}
 
 		for ( View view : mModel.getViews() )
 		{
-			writer.emitStatement( "uriMatcher.addURI(\"" + mModel.getContentAuthority() + "\", \"" + view.name.toLowerCase() + "\", " + SqlUtil.IDENTIFIER( view ) + ")" );
+			writer.emitStatement( "uriMatcher.addURI(\"" + mModel.getContentAuthority() + "\", \"" + view.name + "\", " + SqlUtil.IDENTIFIER( view ) + ")" );
 		}
 
 		writer.endInitializer();
@@ -246,13 +246,13 @@ public class ContentProviderWriter extends Writer
 
 		for ( Table table : mModel.getTables() )
 		{
-			writer.emitStatement( "\tcase " + table.getAllName() + ":\n\treturn \"vnd.android.cursor.dir/vnd." + mModel.getClassPackage() + "." + table.name.toLowerCase() + "\"" );
-			writer.emitStatement( "\tcase " + table.getSingleName() + ":\n\treturn \"vnd.android.cursor.dir/vnd." + mModel.getClassPackage() + "." + table.name.toLowerCase() + "\"" );
+			writer.emitStatement( "\tcase " + table.getAllName() + ":\n\treturn \"vnd.android.cursor.dir/vnd." + mModel.getClassPackage() + "." + table.name + "\"" );
+			writer.emitStatement( "\tcase " + table.getSingleName() + ":\n\treturn \"vnd.android.cursor.dir/vnd." + mModel.getClassPackage() + "." + table.name + "\"" );
 		}
 
 		for ( View view : mModel.getViews() )
 		{
-			writer.emitStatement( "\tcase " + SqlUtil.IDENTIFIER( view ) + ":\n\treturn \"vnd.android.cursor.dir/vnd." + mModel.getClassPackage() + "." + view.name.toLowerCase() + "\"" );
+			writer.emitStatement( "\tcase " + SqlUtil.IDENTIFIER( view ) + ":\n\treturn \"vnd.android.cursor.dir/vnd." + mModel.getClassPackage() + "." + view.name + "\"" );
 		}
 
 		writer.emitStatement( "default:\n throw new IllegalArgumentException(\"Unsupported URI: \" + uri)" );

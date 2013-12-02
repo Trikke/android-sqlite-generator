@@ -115,12 +115,12 @@ public class CRUDBatchClientWriter extends Writer
 		for ( Triple<String, String, String> row : table.fields )
 		{
 
-			params.add( row.fst );
+			params.add( SqlUtil.getJavaTypeFor( row.fst ) );
 			params.add( row.snd );
 		}
 
 		ArrayList<String> paramsWithUnique = new ArrayList<String>();
-		paramsWithUnique.add( table.getPrimaryKey().fst );
+		paramsWithUnique.add( SqlUtil.getJavaTypeFor( table.getPrimaryKey().fst ) );
 		paramsWithUnique.add( table.getPrimaryKey().snd );
 
 		ArrayList<String> updateParams = new ArrayList<String>();

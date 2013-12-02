@@ -35,12 +35,12 @@ public class SqlUtil
 
 	public static String ROW_COLUMN( SQLObject obj, String selector )
 	{
-		return obj.name.toUpperCase() + "_" + printSelect( selector ).toUpperCase() + "_COLUMN";
+		return obj.name.toUpperCase() + "_" + Util.sanitize( selector, false ).toUpperCase() + "_COLUMN";
 	}
 
 	public static String ROW_COLUMN_POSITION( SQLObject obj, String selector )
 	{
-		return obj.name.toUpperCase() + "_" + printSelect( selector ).toUpperCase() + "_COLUMN_POSITION";
+		return obj.name.toUpperCase() + "_" + Util.sanitize( selector, false ).toUpperCase() + "_COLUMN_POSITION";
 	}
 
 	public static String generateCreateStatement( Model model, Table table )
@@ -59,7 +59,7 @@ public class SqlUtil
 		{
 			Triple<String, String, String> row = fieldsiter.next();
 
-			statement += "\t\t\t " + ROW_COLUMN( table, row ) + " + \" " + row.fst;
+			statement += "\t\t\t " + ROW_COLUMN( table, row ) + " + \" " + SqlUtil.getSQLtypeFor( row.fst );
 
 			if ( row.lst != null )
 			{
@@ -98,7 +98,7 @@ public class SqlUtil
 		while ( iterator.hasNext() )
 		{
 			select = iterator.next();
-			statement += "\t\t\t\t\"" + select.fst + " AS " + printSelect( (select.snd == null) ? select.fst : select.snd );
+			statement += "\t\t\t\t\"" + select.fst + " AS " + Util.sanitize( select.snd, false );
 			if ( iterator.hasNext() )
 			{
 				statement += ", ";
@@ -165,28 +165,10 @@ public class SqlUtil
 		return statement;
 	}
 
-	public static String printSelect( String selector )
-	{
-		String[] splitter = selector.split( "\\." );
-		if ( splitter.length <= 1 )
-		{
-			return selector;
-		}
-		String output = "";
-		if ( splitter[0].contains( "(" ) )
-		{
-			// its a function!
-			output += splitter[0].substring( 0, splitter[0].indexOf( "(" ) );
-		}
-		output += Util.sanitize( splitter[1], false );
-
-		return output;
-	}
-
 	public static String getSQLtypeFor( String type )
 	{
 		type = Util.sanitize( type, false ).toLowerCase();
-		if ( type.equals( "Date" ) )
+		if ( type.equals( "date" ) )
 		{
 			return "integer";
 		}
@@ -237,5 +219,36 @@ public class SqlUtil
 		}
 		// fallback to blob
 		return "blob";
+	}
+
+	public static String getJavaTypeFor( String type )
+	{
+		String tocheck = Util.sanitize( type, false ).toLowerCase();
+		if ( tocheck.equals( "null" ) )
+		{
+			return "null";
+		}
+		if ( tocheck.equals( "integer" ) )
+		{
+			return "int";
+		}
+		if ( tocheck.equals( "real" ) )
+		{
+			return "double";
+		}
+		if ( tocheck.equals( "text" ) )
+		{
+			return "String";
+		}
+		if ( tocheck.equals( "string" ) )
+		{
+			return "String";
+		}
+		if ( tocheck.equals( "autoincrement" ) )
+		{
+			return "int";
+		}
+		// fallback to whatever it is
+		return type;
 	}
 }

@@ -6,6 +6,7 @@ import com.trikke.data.Model;
 import com.trikke.data.Table;
 import com.trikke.data.Triple;
 import com.trikke.data.View;
+import com.trikke.exception.ParserException;
 import com.trikke.util.Util;
 import com.trikke.writer.CRUDBatchClientWriter;
 import com.trikke.writer.CRUDClientWriter;
@@ -187,14 +188,22 @@ public class SqliteGenerator
 				System.err.println( "The object " + name + " contains no valid data. I can not guess if this is a table or a view." );
 				System.exit( 1 );
 			}
-		} catch ( Exception npe )
+		} catch ( ParserException pex )
+		{
+			System.err.println( "The object " + name + " is not the parsable structure i expect it to be. Reason : " + pex.getMessage() );
+			System.exit( 1 );
+		} catch ( UnsupportedOperationException uoex )
+		{
+			System.err.println( "The object " + name + " is not the parsable structure i expect it to be. Reason : " + uoex.getMessage() );
+			System.exit( 1 );
+		} catch ( Exception ex )
 		{
 			System.err.println( "The object " + name + " is not the parsable structure i expect it to be, please see formatting guidelines." );
 			System.exit( 1 );
 		}
 	}
 
-	private void parseTableFromFile( final JsonObject jsontable, final String name )
+	private void parseTableFromFile( final JsonObject jsontable, final String name ) throws ParserException
 	{
 		System.out.println( "found table > " + name );
 		boolean containsFields = jsontable.names().contains( "fields" );
@@ -205,58 +214,70 @@ public class SqliteGenerator
 		} else
 		{
 			Table table = new Table();
-			table.name = name;
-			for ( JsonValue jsoninfo : jsontable.get( "fields" ).asArray() )
+			table.name = name.toLowerCase();
+			try
 			{
-				JsonObject info = (JsonObject) jsoninfo;
-				String type = info.get( "type" ).asString();
-				if ( type.toLowerCase().equals( "autoincrement" ) )
+				for ( JsonValue jsoninfo : jsontable.get( "fields" ).asArray() )
 				{
-					table.setPrimaryKey( type, info.get( "name" ).asString() );
-				}
-
-				String constraints = null;
-				if ( info.names().contains( "constraints" ) )
-				{
-					for ( JsonValue constraint : info.get( "constraints" ).asArray() )
+					JsonObject info = (JsonObject) jsoninfo;
+					String type = info.get( "type" ).asString().toLowerCase();
+					if ( type.equals( "autoincrement" ) )
 					{
-						constraints += " " + constraint.asString();
-						if ( constraint.asString().toLowerCase().contains( "primary key" ) )
+						table.setPrimaryKey( type, info.get( "name" ).asString() );
+					}
+
+					String constraints = null;
+					if ( info.names().contains( "constraints" ) )
+					{
+						for ( JsonValue constraint : info.get( "constraints" ).asArray() )
 						{
-							table.setPrimaryKey( type, info.get( "name" ).asString() );
+							constraints += " " + constraint.asString();
+							if ( constraint.asString().toLowerCase().contains( "primary key" ) )
+							{
+								table.setPrimaryKey( type, info.get( "name" ).asString() );
+							}
 						}
 					}
+					table.addField( type, info.get( "name" ).asString(), constraints );
 				}
-				table.addField( type, info.get( "name" ).asString(), constraints );
+			} catch ( NullPointerException e )
+			{
+				throw new ParserException( "Couldn't parse the fields in this table." );
 			}
 			if ( jsontable.names().contains( "constraints" ) )
 			{
-				for ( JsonValue jsoninfo : jsontable.get( "constraints" ).asArray() )
+				try
 				{
-					JsonObject info = (JsonObject) jsoninfo;
-					String definition = info.get( "definition" ).asString();
-					if ( definition.toLowerCase().contains( "primary key" ) )
+					for ( JsonValue jsoninfo : jsontable.get( "constraints" ).asArray() )
 					{
-						// skip if primary key already set
-						if ( table.hasPrimaryKey() )
+						JsonObject info = (JsonObject) jsoninfo;
+						String definition = info.get( "definition" ).asString();
+						if ( definition.toLowerCase().contains( "primary key" ) )
 						{
-							continue;
-						}
+							// skip if primary key already set
+							if ( table.hasPrimaryKey() )
+							{
+								continue;
+							}
 
-						final Triple<String, String, String> field = table.getFieldByName( info.get( "name" ).asString() );
-						if ( field != null )
-						{
-							table.setPrimaryKey( field.fst, field.snd );
+							final Triple<String, String, String> field = table.getFieldByName( info.get( "name" ).asString() );
+							if ( field != null )
+							{
+								table.setPrimaryKey( field.fst, field.snd );
+							}
 						}
+						table.addConstraint( info.get( "name" ).asString(), definition );
 					}
-					table.addConstraint( info.get( "name" ).asString(), definition );
+				} catch ( NullPointerException e )
+				{
+					throw new ParserException( "Couldn't parse the constraints in this table." );
 				}
 			}
 			mModel.addTable( table );
 		}
 	}
 
-	private void parseViewFromFile( final JsonObject jsonview, final String name )
+	private void parseViewFromFile( final JsonObject jsonview, final String name ) throws ParserException
 	{
 		System.out.println( "found view > " + name );
 		boolean containsFields = jsonview.names().contains( "selects" );
@@ -267,28 +288,66 @@ public class SqliteGenerator
 		} else
 		{
 			View view = new View();
-			view.name = name;
-			for ( JsonValue jsoninfo : jsonview.get( "selects" ).asArray() )
+			view.name = name.toLowerCase();
+			try
 			{
-				JsonObject info = (JsonObject) jsoninfo;
-				view.addSelect( (info.names().contains( "name" )) ? info.get( "name" ).asString() : null, info.get( "from" ).asString() );
+				for ( JsonValue jsoninfo : jsonview.get( "selects" ).asArray() )
+				{
+					JsonObject info = (JsonObject) jsoninfo;
+					view.addSelect( (info.names().contains( "as" )) ? info.get( "as" ).asString() : null, info.get( "select" ).asString() );
+				}
+			} catch ( NullPointerException e )
+			{
+				throw new ParserException( "Couldn't parse the selects in this view." );
 			}
-			for ( JsonValue jsoninfo : jsonview.get( "from" ).asArray() )
+
+			try
 			{
-				view.addFromTable( jsoninfo.asString() );
+				for ( JsonValue jsoninfo : jsonview.get( "from" ).asArray() )
+				{
+					view.addFromTable( jsoninfo.asString() );
+				}
+			} catch ( NullPointerException e )
+			{
+				throw new ParserException( "Couldn't parse the from tables in this view." );
 			}
-			for ( JsonValue jsoninfo : jsonview.get( "on" ).asArray() )
+
+			try
 			{
-				view.addJoinOn( jsoninfo.asString() );
+				for ( JsonValue jsoninfo : jsonview.get( "on" ).asArray() )
+				{
+					view.addJoinOn( jsoninfo.asString() );
+				}
+			} catch ( NullPointerException e )
+			{
+				throw new ParserException( "Couldn't parse the fields on which to join in this view." );
 			}
-			for ( JsonValue jsoninfo : jsonview.get( "order" ).asArray() )
+			try
 			{
-				JsonObject info = (JsonObject) jsoninfo;
-				view.addOrder( info.get( "by" ).asString(), (info.names().contains( "sort" )) ? info.get( "sort" ).asString() : "ASC" );
+				if ( jsonview.names().contains( "order" ) )
+				{
+					for ( JsonValue jsoninfo : jsonview.get( "order" ).asArray() )
+					{
+						JsonObject info = (JsonObject) jsoninfo;
+						view.addOrder( info.get( "by" ).asString(), (info.names().contains( "sort" )) ? info.get( "sort" ).asString() : "ASC" );
+					}
+				}
+			} catch ( NullPointerException e )
+			{
+				throw new ParserException( "Couldn't parse the ordering in this view." );
 			}
-			for ( JsonValue jsoninfo : jsonview.get( "group" ).asArray() )
+			try
 			{
-				view.addGroup( jsoninfo.asString() );
+				if ( jsonview.names().contains( "group" ) )
+				{
+					for ( JsonValue jsoninfo : jsonview.get( "group" ).asArray() )
+					{
+						view.addGroup( jsoninfo.asString() );
+					}
+				}
+			} catch ( NullPointerException e )
+			{
+				throw new ParserException( "Couldn't parse the grouping in this view." );
 			}
 			if ( jsonview.names().contains( "join" ) )
 			{

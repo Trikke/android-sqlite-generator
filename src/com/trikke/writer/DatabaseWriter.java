@@ -2,6 +2,7 @@ package com.trikke.writer;
 
 import com.trikke.data.*;
 import com.trikke.util.SqlUtil;
+import com.trikke.util.Util;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
@@ -97,7 +98,7 @@ public class DatabaseWriter extends Writer
 			int index = 0;
 			for ( Pair<String, String> select : view.fields )
 			{
-				writer.emitField( "String", SqlUtil.ROW_COLUMN( view, (select.snd == null) ? select.fst : select.snd ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "\"" + SqlUtil.printSelect( (select.snd == null) ? select.fst : select.snd ) + "\"" );
+				writer.emitField( "String", SqlUtil.ROW_COLUMN( view, (select.snd == null) ? select.fst : select.snd ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "\"" + Util.sanitize( select.snd, false ) + "\"" );
 				writer.emitField( "int", SqlUtil.ROW_COLUMN_POSITION( view, (select.snd == null) ? select.fst : select.snd ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "" + index );
 				index++;
 			}
@@ -120,7 +121,7 @@ public class DatabaseWriter extends Writer
 		for ( View view : mModel.getViews() )
 		{
 			writer.emitSingleLineComment( view.name + " view create statement" );
-			writer.emitField( "String", "VIEW_" + view.name + "_CREATE", EnumSet.of( Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL ), "\"" + SqlUtil.generateCreateStatement( view ) + "\"" );
+			writer.emitField( "String", "VIEW_" + view.name.toUpperCase() + "_CREATE", EnumSet.of( Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL ), "\"" + SqlUtil.generateCreateStatement( view ) + "\"" );
 			writer.emitEmptyLine();
 		}
 	}
@@ -138,7 +139,7 @@ public class DatabaseWriter extends Writer
 		}
 		for ( View view : mModel.getViews() )
 		{
-			writer.emitStatement( "db.execSQL(" + "VIEW_" + view.name + "_CREATE" + ")" );
+			writer.emitStatement( "db.execSQL(" + "VIEW_" + view.name.toUpperCase() + "_CREATE" + ")" );
 		}
 
 		writer.endMethod();
