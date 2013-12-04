@@ -3,8 +3,9 @@ package com.trikke.util;
 import com.trikke.data.*;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by the awesome :
@@ -24,14 +25,14 @@ public class SqlUtil
 		return obj.name.toUpperCase() + "_TABLE";
 	}
 
-	public static String ROW_COLUMN( SQLObject obj, Triple<String, String, List<Constraint>> row )
+	public static String ROW_COLUMN( SQLObject obj, Field row )
 	{
-		return obj.name.toUpperCase() + "_" + row.snd.toUpperCase() + "_COLUMN";
+		return obj.name.toUpperCase() + "_" + row.name.toUpperCase() + "_COLUMN";
 	}
 
-	public static String ROW_COLUMN_POSITION( SQLObject obj, Triple<String, String, List<Constraint>> row )
+	public static String ROW_COLUMN_POSITION( SQLObject obj, Field row )
 	{
-		return obj.name.toUpperCase() + "_" + row.snd.toUpperCase() + "_COLUMN_POSITION";
+		return obj.name.toUpperCase() + "_" + row.name.toUpperCase() + "_COLUMN_POSITION";
 	}
 
 	public static String ROW_COLUMN( SQLObject obj, String selector )
@@ -44,7 +45,7 @@ public class SqlUtil
 		return obj.name.toUpperCase() + "_" + Util.sanitize( selector, false ).toUpperCase() + "_COLUMN_POSITION";
 	}
 
-	public static String generateCreateStatement( Model model, Table table )
+	public static String generateCreateStatement( Table table )
 	{
 		String statement = "CREATE TABLE " + table.name + " (\" + \n";
 
@@ -54,17 +55,17 @@ public class SqlUtil
 			statement += "\t\t\t \"" + Table.ANDROID_ID + " integer primary key autoincrement,\" + \n";
 		}
 
-		Iterator<Triple<String, String, List<Constraint>>> fieldsiter = table.fields.iterator();
+		Iterator<Field> fieldsiter = table.fields.iterator();
 
 		while ( fieldsiter.hasNext() )
 		{
-			Triple<String, String, List<Constraint>> row = fieldsiter.next();
+			Field row = fieldsiter.next();
 
-			statement += "\t\t\t " + ROW_COLUMN( table, row ) + " + \" " + SqlUtil.getSQLtypeFor( row.fst );
+			statement += "\t\t\t " + ROW_COLUMN( table, row ) + " + \" " + SqlUtil.getSQLtypeFor( row.type );
 
-			if ( !row.lst.isEmpty() )
+			if ( !row.constraints.isEmpty() )
 			{
-				Iterator<Constraint> constraintiter = row.lst.iterator();
+				Iterator<Constraint> constraintiter = row.constraints.iterator();
 				while ( constraintiter.hasNext() )
 				{
 					statement += " " + constraintiter.next().value;
@@ -168,6 +169,21 @@ public class SqlUtil
 		}
 
 		return statement;
+	}
+
+	public static String[] getFieldsFromConstraint( Constraint constraint )
+	{
+		Pattern p = Pattern.compile( "\\((.*?)\\)" );
+		Matcher m = p.matcher( constraint.value );
+
+		String[] full = new String[]{};
+
+		while ( m.find() )
+		{
+			full = Util.merge( full, m.group( 1 ).replaceAll( "[^A-Za-z0-9_,]", "" ).split( "," ) );
+		}
+
+		return full;
 	}
 
 	public static String getSQLtypeFor( String type )

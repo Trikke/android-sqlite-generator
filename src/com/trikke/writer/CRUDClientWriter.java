@@ -8,7 +8,7 @@ import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.List;
+import java.util.Iterator;
 
 /**
  * Created by the awesome :
@@ -89,68 +89,81 @@ public class CRUDClientWriter extends Writer
 	{
 		// Default array params for all rows
 		ArrayList<String> params = new ArrayList<String>();
-		for ( Triple<String, String, List<Constraint>> row : table.fields )
+		for ( Field row : table.fields )
 		{
-			params.add( SqlUtil.getJavaTypeFor( row.fst ) );
-			params.add( row.snd );
+			params.add( SqlUtil.getJavaTypeFor( row.type ) );
+			params.add( row.name );
 		}
 
-		ArrayList<String> paramsWithContext = new ArrayList<String>();
-		paramsWithContext.add( "Context" );
-		paramsWithContext.add( "c" );
-		paramsWithContext.addAll( params );
+		ArrayList<String> paramsJustContext = new ArrayList<String>();
+		paramsJustContext.add( "Context" );
+		paramsJustContext.add( "c" );
 
-		ArrayList<String> paramsWithUnique = new ArrayList<String>();
-		paramsWithUnique.add( "Context" );
-		paramsWithUnique.add( "c" );
-		paramsWithUnique.add( SqlUtil.getJavaTypeFor( table.getPrimaryKey().fst ) );
-		paramsWithUnique.add( table.getPrimaryKey().snd );
+		ArrayList<String> paramsWithContext = new ArrayList<String>();
+		paramsWithContext.addAll( paramsJustContext );
+		paramsWithContext.addAll( params );
 
 		ArrayList<String> updateParams = new ArrayList<String>();
 		updateParams.add( "Context" );
 		updateParams.add( "c" );
-		updateParams.add( SqlUtil.getJavaTypeFor( table.getPrimaryKey().fst ) );
-		updateParams.add( table.getPrimaryKey().snd );
+		updateParams.add( SqlUtil.getJavaTypeFor( table.getPrimaryKey().type ) );
+		updateParams.add( table.getPrimaryKey().name );
 		updateParams.addAll( params );
 
-
-		ArrayList<String> updateWhereParams = new ArrayList<String>();
-		updateWhereParams.add( "Context" );
-		updateWhereParams.add( "c" );
-		updateWhereParams.add( "String" );
-		updateWhereParams.add( "rowname" );
-		updateWhereParams.add( "Object" );
-		updateWhereParams.add( "updatevalue" );
-		updateWhereParams.addAll( params );
 
 		writer.emitEmptyLine();
 		writer.emitJavadoc( table.name + " OPERATIONS" );
 		writer.emitEmptyLine();
 
-		// Normal Get with primary
-		writer.beginMethod( "Cursor", "get" + Util.capitalize( table.name ) + "With" + Util.capitalize( table.getPrimaryKey().snd ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), paramsWithUnique.toArray( new String[paramsWithUnique.size()] ) );
-		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
-		writer.emitStatement( "return cr.query(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ", null, \"" + table.getPrimaryKey().snd + "=?\", new String[]{String.valueOf(" + table.getPrimaryKey().snd + ")},null)" );
-		writer.endMethod();
+		Iterator<Constraint> constraintiter;
+
+		// Gets
+		writeGetWith( table, table.getPrimaryKey() );
+
+		constraintiter = table.constraints.iterator();
+
+		while ( constraintiter.hasNext() )
+		{
+			Constraint constraint = constraintiter.next();
+			if ( constraint.type.equals( Constraint.Type.UNIQUE ) )
+			{
+				final String[] fields = SqlUtil.getFieldsFromConstraint( constraint );
+				for ( int i = 0; i < fields.length; i++ )
+				{
+					writeGetWith( table, table.getFieldByName( fields[i] ) );
+				}
+			}
+		}
 
 		// Normal Add
 		writer.emitEmptyLine();
 		writer.beginMethod( "Uri", "add" + Util.capitalize( table.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), paramsWithContext.toArray( new String[paramsWithContext.size()] ) );
 		writer.emitStatement( "ContentValues contentValues = new ContentValues()" );
-		for ( Triple<String, String, List<Constraint>> row : table.fields )
+		for ( Field row : table.fields )
 		{
-			writer.emitStatement( "contentValues.put(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.snd + ")" );
+			writer.emitStatement( "contentValues.put(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.name + ")" );
 		}
 		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
 		writer.emitStatement( "return cr.insert(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ", contentValues)" );
 		writer.endMethod();
 
-		// Normal remove with primary
-		writer.emitEmptyLine();
-		writer.beginMethod( "int", "remove" + Util.capitalize( table.name ) + "With" + Util.capitalize( table.getPrimaryKey().snd ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), paramsWithUnique.toArray( new String[paramsWithUnique.size()] ) );
-		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
-		writer.emitStatement( "return cr.delete(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ", \"" + table.getPrimaryKey().snd + "=?\", new String[]{String.valueOf(" + table.getPrimaryKey().snd + ")})" );
-		writer.endMethod();
+		// Removes
+		writeRemoveWith( table, table.getPrimaryKey() );
+
+		constraintiter = table.constraints.iterator();
+
+		while ( constraintiter.hasNext() )
+		{
+			Constraint constraint = constraintiter.next();
+			if ( constraint.type.equals( Constraint.Type.UNIQUE ) )
+			{
+				final String[] fields = SqlUtil.getFieldsFromConstraint( constraint );
+				for ( int i = 0; i < fields.length; i++ )
+				{
+					writeRemoveWith( table, table.getFieldByName( fields[i] ) );
+				}
+			}
+		}
 
 		// Remove All results
 		writer.emitEmptyLine();
@@ -165,7 +178,7 @@ public class CRUDClientWriter extends Writer
 		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
 
 		String arrays = "";
-		for ( Triple<String, String, List<Constraint>> row : table.fields )
+		for ( Field row : table.fields )
 		{
 			arrays += mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + ",\n";
 		}
@@ -181,33 +194,101 @@ public class CRUDClientWriter extends Writer
 		writer.emitEmptyLine();
 		writer.beginMethod( "int", "update" + Util.capitalize( table.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), updateParams.toArray( new String[updateParams.size()] ) );
 		writer.emitStatement( "ContentValues contentValues = new ContentValues()" );
-		for ( Triple<String, String, List<Constraint>> row : table.fields )
+		for ( Field row : table.fields )
 		{
-			writer.emitStatement( "contentValues.put(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.snd + ")" );
+			writer.emitStatement( "contentValues.put(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.name + ")" );
 		}
-		writer.emitStatement( "Uri rowURI = ContentUris.withAppendedId(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + "," + table.getPrimaryKey().snd + ")" );
+		writer.emitStatement( "Uri rowURI = ContentUris.withAppendedId(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + "," + table.getPrimaryKey().name + ")" );
 		writer.emitStatement( "String where = null" );
 		writer.emitStatement( "String whereArgs[] = null" );
 		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
 		writer.emitStatement( "return cr.update(rowURI, contentValues, where, whereArgs)" );
 		writer.endMethod();
 
-		/*
+		// Update where
+		writeUpdateWhere( table, table.getPrimaryKey() );
+
+		constraintiter = table.constraints.iterator();
+
+		while ( constraintiter.hasNext() )
+		{
+			Constraint constraint = constraintiter.next();
+			if ( constraint.type.equals( Constraint.Type.UNIQUE ) )
+			{
+				final String[] fields = SqlUtil.getFieldsFromConstraint( constraint );
+				for ( int i = 0; i < fields.length; i++ )
+				{
+					writeUpdateWhere( table, table.getFieldByName( fields[i] ) );
+				}
+			}
+		}
+	}
+
+
+	private void writeGetWith( Table table, Field field ) throws IOException
+	{
+		ArrayList<String> params = new ArrayList<String>();
+		params.add( "Context" );
+		params.add( "c" );
+		params.add( SqlUtil.getJavaTypeFor( field.type ) );
+		params.add( field.name );
+
+		writer.emitEmptyLine();
+		writer.beginMethod( "Cursor", "get" + Util.capitalize( table.name ) + "With" + Util.capitalize( field.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), params.toArray( new String[params.size()] ) );
+		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
+		writer.emitStatement( "return cr.query(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ", null, " + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, field ) + " + \"=?\", new String[]{String.valueOf(" + field.name + ")},null)" );
+		writer.endMethod();
+	}
+
+	private void writeRemoveWith( Table table, Field field ) throws IOException
+	{
+		ArrayList<String> params = new ArrayList<String>();
+		params.add( "Context" );
+		params.add( "c" );
+		params.add( SqlUtil.getJavaTypeFor( field.type ) );
+		params.add( field.name );
+
+		// Normal remove with primary
+		writer.emitEmptyLine();
+		writer.beginMethod( "int", "remove" + Util.capitalize( table.name ) + "With" + Util.capitalize( field.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), params.toArray( new String[params.size()] ) );
+		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
+		writer.emitStatement( "return cr.delete(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ", " + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, field ) + " + \"=?\", new String[]{String.valueOf(" + field.name + ")})" );
+		writer.endMethod();
+	}
+
+	private void writeUpdateWhere( Table table, Field field ) throws IOException
+	{
+		ArrayList<String> params = new ArrayList<String>();
+		params.add( "Context" );
+		params.add( "c" );
+		params.add( SqlUtil.getJavaTypeFor( field.type ) );
+		params.add( field.name );
+
+		// Default array params for all rows
+		for ( Field row : table.fields )
+		{
+			if ( row.equals( field ) )
+			{
+				continue;
+			}
+
+			params.add( SqlUtil.getJavaTypeFor( row.type ) );
+			params.add( row.name );
+		}
+
 		// Update with where clause
 		writer.emitEmptyLine();
-		writer.beginMethod( "int", "update" + Util.capitalize( table.name ) + "Where", EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), updateWhereParams.toArray( new String[updateWhereParams.size()] ) );
+		writer.beginMethod( "int", "update" + Util.capitalize( table.name ) + "Where" + Util.capitalize( field.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), params.toArray( new String[params.size()] ) );
 		writer.emitStatement( "ContentValues contentValues = new ContentValues()" );
-		for ( Pair<String, String> row : table.fields )
+		for ( Field row : table.fields )
 		{
-			writer.emitStatement( "contentValues.put(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.snd + ")" );
+			writer.emitStatement( "contentValues.put(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.name + ")" );
 		}
-		writer.emitStatement( "Uri rowURI = " + mModel.getContentProviderName() + "." + SqlUtil.URI( table ));
-		writer.emitStatement( "String where = \"rowname=?\"" );
-		writer.emitStatement( "String whereArgs[] = new String[]{String.valueOf(updatevalue)}" );
+		writer.emitStatement( "Uri rowURI = " + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) );
+		writer.emitStatement( "String where = " + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, field ) + " + \"=?\"" );
+		writer.emitStatement( "String whereArgs[] = new String[]{String.valueOf(" + field.name + ")}" );
 		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
 		writer.emitStatement( "return cr.update(rowURI, contentValues, where, whereArgs)" );
 		writer.endMethod();
-		*/
 	}
-
 }

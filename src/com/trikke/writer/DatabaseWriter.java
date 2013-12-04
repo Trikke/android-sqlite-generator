@@ -7,7 +7,6 @@ import com.trikke.util.Util;
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.EnumSet;
-import java.util.List;
 
 /**
  * Created by the awesome :
@@ -84,9 +83,9 @@ public class DatabaseWriter extends Writer
 			writer.emitField( "String", SqlUtil.IDENTIFIER( table ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "\"" + table.name + "\"" );
 
 			int index = 1;
-			for ( Triple<String, String, List<Constraint>> row : table.fields )
+			for ( Field row : table.fields )
 			{
-				writer.emitField( "String", SqlUtil.ROW_COLUMN( table, row ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "\"" + row.snd + "\"" );
+				writer.emitField( "String", SqlUtil.ROW_COLUMN( table, row ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "\"" + row.name + "\"" );
 				writer.emitField( "int", SqlUtil.ROW_COLUMN_POSITION( table, row ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "" + index );
 				index++;
 			}
@@ -112,7 +111,7 @@ public class DatabaseWriter extends Writer
 		for ( Table table : mModel.getTables() )
 		{
 			writer.emitSingleLineComment( table.name + " create statement" );
-			writer.emitField( "String", "DATABASE_" + table.name.toUpperCase() + "_CREATE", EnumSet.of( Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL ), "\"" + SqlUtil.generateCreateStatement( mModel, table ) + "\"" );
+			writer.emitField( "String", "DATABASE_" + table.name.toUpperCase() + "_CREATE", EnumSet.of( Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL ), "\"" + SqlUtil.generateCreateStatement( table ) + "\"" );
 			writer.emitEmptyLine();
 		}
 	}

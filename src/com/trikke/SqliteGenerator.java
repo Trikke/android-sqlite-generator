@@ -13,7 +13,6 @@ import com.trikke.writer.DatabaseWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 public class SqliteGenerator
 {
@@ -226,7 +225,7 @@ public class SqliteGenerator
 						table.setPrimaryKey( type, info.get( "name" ).asString() );
 					}
 
-					ArrayList<Constraint> constraints = new ArrayList<Constraint>(  );
+					ArrayList<Constraint> constraints = new ArrayList<Constraint>();
 					if ( info.names().contains( "constraints" ) )
 					{
 						for ( JsonValue jsonconstaint : info.get( "constraints" ).asArray() )
@@ -241,10 +240,10 @@ public class SqliteGenerator
 									continue;
 								}
 
-								final Triple<String, String, List<Constraint>> field = table.getFieldByName( constraint.get( "name" ).asString() );
+								final Field field = table.getFieldByName( constraint.get( "name" ).asString() );
 								if ( field != null )
 								{
-									table.setPrimaryKey( field.fst, field.snd );
+									table.setPrimaryKey( field );
 								}
 							}
 							constraints.add( new Constraint( constraint.names().contains( "name" ) ? constraint.get( "name" ).asString() : null, definition ) );
@@ -272,10 +271,10 @@ public class SqliteGenerator
 								continue;
 							}
 
-							final Triple<String, String, List<Constraint>> field = table.getFieldByName( info.get( "name" ).asString() );
+							final Field field = table.getFieldByName( info.get( "name" ).asString() );
 							if ( field != null )
 							{
-								table.setPrimaryKey( field.fst, field.snd );
+								table.setPrimaryKey( field );
 							}
 						}
 						table.addConstraint( info.names().contains( "name" ) ? info.get( "name" ).asString() : null, definition );

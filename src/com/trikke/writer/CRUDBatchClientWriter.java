@@ -1,9 +1,8 @@
 package com.trikke.writer;
 
-import com.trikke.data.Constraint;
+import com.trikke.data.Field;
 import com.trikke.data.Model;
 import com.trikke.data.Table;
-import com.trikke.data.Triple;
 import com.trikke.util.SqlUtil;
 import com.trikke.util.Util;
 
@@ -11,7 +10,6 @@ import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.List;
 
 /**
  * Created by the awesome :
@@ -114,16 +112,16 @@ public class CRUDBatchClientWriter extends Writer
 	{
 		// Default array params for all rows
 		ArrayList<String> params = new ArrayList<String>();
-		for ( Triple<String, String, List<Constraint>> row : table.fields )
+		for ( Field row : table.fields )
 		{
 
-			params.add( SqlUtil.getJavaTypeFor( row.fst ) );
-			params.add( row.snd );
+			params.add( SqlUtil.getJavaTypeFor( row.type ) );
+			params.add( row.name );
 		}
 
 		ArrayList<String> paramsWithUnique = new ArrayList<String>();
-		paramsWithUnique.add( SqlUtil.getJavaTypeFor( table.getPrimaryKey().fst ) );
-		paramsWithUnique.add( table.getPrimaryKey().snd );
+		paramsWithUnique.add( SqlUtil.getJavaTypeFor( table.getPrimaryKey().type ) );
+		paramsWithUnique.add( table.getPrimaryKey().name );
 
 		ArrayList<String> updateParams = new ArrayList<String>();
 		// TODO : add unique id
@@ -136,18 +134,18 @@ public class CRUDBatchClientWriter extends Writer
 		// Add through ContentProviderOperation
 		writer.beginMethod( "void", "add" + Util.capitalize( table.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), params.toArray( new String[params.size()] ) );
 		writer.emitStatement( "ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newInsert(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ")" );
-		for ( Triple<String, String, List<Constraint>> row : table.fields )
+		for ( Field row : table.fields )
 		{
-			writer.emitStatement( "operationBuilder.withValue(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.snd + ")" );
+			writer.emitStatement( "operationBuilder.withValue(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.name + ")" );
 		}
 		insertAddOpBlock();
 		writer.endMethod();
 
 		// remove with UNIQUE
 		writer.emitEmptyLine();
-		writer.beginMethod( "void", "remove" + Util.capitalize( table.name ) + "With" + Util.capitalize( table.getPrimaryKey().snd ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), paramsWithUnique.toArray( new String[paramsWithUnique.size()] ) );
+		writer.beginMethod( "void", "remove" + Util.capitalize( table.name ) + "With" + Util.capitalize( table.getPrimaryKey().name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), paramsWithUnique.toArray( new String[paramsWithUnique.size()] ) );
 		writer.emitStatement( "ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newDelete(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ")" );
-		writer.emitStatement( "operationBuilder.withSelection(\"" + table.getPrimaryKey().snd + "=?\", new String[]{String.valueOf(" + table.getPrimaryKey().snd + ")})" );
+		writer.emitStatement( "operationBuilder.withSelection(\"" + table.getPrimaryKey().name + "=?\", new String[]{String.valueOf(" + table.getPrimaryKey().name + ")})" );
 		insertAddOpBlock();
 		writer.endMethod();
 
@@ -163,9 +161,9 @@ public class CRUDBatchClientWriter extends Writer
 		writer.emitEmptyLine();
 		writer.beginMethod( "void", "update" + Util.capitalize( table.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), updateParams.toArray( new String[updateParams.size()] ) );
 		writer.emitStatement( "ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ")" );
-		for ( Triple<String, String, List<Constraint>> row : table.fields )
+		for ( Field row : table.fields )
 		{
-			writer.emitStatement( "operationBuilder.withValue(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.snd + ")" );
+			writer.emitStatement( "operationBuilder.withValue(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.name + ")" );
 		}
 		insertAddOpBlock();
 		writer.endMethod();

@@ -15,12 +15,12 @@ public class Table extends SQLObject
 {
 	public static final String ANDROID_ID = "_id";
 
-	public ArrayList<Triple<String, String, List<Constraint>>> fields = new ArrayList<Triple<String, String, List<Constraint>>>(  );
-	public ArrayList<Constraint> constraints = new ArrayList<Constraint>(  );
+	public ArrayList<Field> fields = new ArrayList<Field>();
+	public ArrayList<Constraint> constraints = new ArrayList<Constraint>();
 
 	private boolean hasPrimaryKey;
 
-	private Pair<String, String> primaryKey = null;
+	private Field primaryKey = null;
 
 	public Table()
 	{
@@ -29,7 +29,7 @@ public class Table extends SQLObject
 
 	public void addField( String type, String name, List<Constraint> constraints )
 	{
-		fields.add( new Triple<String, String, List<Constraint>>( SqlUtil.getJavaTypeFor( type ), name, constraints ) );
+		fields.add( new Field( type, name, constraints ) );
 	}
 
 	public void addConstraint( String name, String definition )
@@ -47,11 +47,11 @@ public class Table extends SQLObject
 		return "ALL" + name;
 	}
 
-	public Triple<String, String, List<Constraint>> getFieldByName( String name )
+	public Field getFieldByName( String name )
 	{
-		for ( Triple<String, String, List<Constraint>> field : fields )
+		for ( Field field : fields )
 		{
-			if ( field.snd.toLowerCase().equals( name.toLowerCase() ) )
+			if ( field.name.toLowerCase().equals( name.toLowerCase() ) )
 			{
 				return field;
 			}
@@ -59,13 +59,13 @@ public class Table extends SQLObject
 		return null;
 	}
 
-	public Pair<String, String> getPrimaryKey()
+	public Field getPrimaryKey()
 	{
 		if ( hasPrimaryKey )
 		{
 			return primaryKey;
 		}
-		return new Pair<String, String>( "int", ANDROID_ID );
+		return new Field( "int", ANDROID_ID, new ArrayList<Constraint>() );
 	}
 
 	public boolean hasPrimaryKey()
@@ -76,6 +76,12 @@ public class Table extends SQLObject
 	public void setPrimaryKey( String type, String name )
 	{
 		this.hasPrimaryKey = true;
-		primaryKey = new Pair<String, String>( SqlUtil.getJavaTypeFor( type ), name );
+		primaryKey = new Field( SqlUtil.getJavaTypeFor( type ), name, new ArrayList<Constraint>() );
+	}
+
+	public void setPrimaryKey( Field field )
+	{
+		this.hasPrimaryKey = true;
+		primaryKey = field;
 	}
 }

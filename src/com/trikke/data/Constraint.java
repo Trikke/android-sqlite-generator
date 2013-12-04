@@ -44,9 +44,12 @@ public class Constraint
 
 	public String toString()
 	{
-		if (name != null)
+		if ( name != null )
+		{
 			return name + " " + value;
-		else
+		} else
+		{
 			return value;
+		}
 	}
 }

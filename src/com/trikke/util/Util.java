@@ -4,6 +4,7 @@ import com.eclipsesource.json.JsonObject;
 import com.squareup.javawriter.JavaWriter;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -79,6 +80,19 @@ public class Util
 		}
 
 		return clean.toArray( new String[clean.size()] );
+	}
+
+	public static <T> T[] merge( T[] A, T[] B )
+	{
+		int aLen = A.length;
+		int bLen = B.length;
+
+		@SuppressWarnings("unchecked")
+		T[] C = (T[]) Array.newInstance( A.getClass().getComponentType(), aLen + bLen );
+		System.arraycopy( A, 0, C, 0, aLen );
+		System.arraycopy( B, 0, C, aLen, bLen );
+
+		return C;
 	}
 
 	public static JsonObject getJsonFromFile( String filePath ) throws IOException
