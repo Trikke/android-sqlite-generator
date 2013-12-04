@@ -8,6 +8,7 @@ import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 
 /**
  * Created by the awesome :
@@ -88,7 +89,7 @@ public class CRUDClientWriter extends Writer
 	{
 		// Default array params for all rows
 		ArrayList<String> params = new ArrayList<String>();
-		for ( Triple<String, String, String> row : table.fields )
+		for ( Triple<String, String, List<Constraint>> row : table.fields )
 		{
 			params.add( SqlUtil.getJavaTypeFor( row.fst ) );
 			params.add( row.snd );
@@ -136,7 +137,7 @@ public class CRUDClientWriter extends Writer
 		writer.emitEmptyLine();
 		writer.beginMethod( "Uri", "add" + Util.capitalize( table.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), paramsWithContext.toArray( new String[paramsWithContext.size()] ) );
 		writer.emitStatement( "ContentValues contentValues = new ContentValues()" );
-		for ( Triple<String, String, String> row : table.fields )
+		for ( Triple<String, String, List<Constraint>> row : table.fields )
 		{
 			writer.emitStatement( "contentValues.put(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.snd + ")" );
 		}
@@ -164,7 +165,7 @@ public class CRUDClientWriter extends Writer
 		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
 
 		String arrays = "";
-		for ( Triple<String, String, String> row : table.fields )
+		for ( Triple<String, String, List<Constraint>> row : table.fields )
 		{
 			arrays += mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + ",\n";
 		}
@@ -180,7 +181,7 @@ public class CRUDClientWriter extends Writer
 		writer.emitEmptyLine();
 		writer.beginMethod( "int", "update" + Util.capitalize( table.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), updateParams.toArray( new String[updateParams.size()] ) );
 		writer.emitStatement( "ContentValues contentValues = new ContentValues()" );
-		for ( Triple<String, String, String> row : table.fields )
+		for ( Triple<String, String, List<Constraint>> row : table.fields )
 		{
 			writer.emitStatement( "contentValues.put(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.snd + ")" );
 		}

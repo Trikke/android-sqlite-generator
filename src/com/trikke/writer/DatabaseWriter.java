@@ -7,6 +7,7 @@ import com.trikke.util.Util;
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.EnumSet;
+import java.util.List;
 
 /**
  * Created by the awesome :
@@ -83,7 +84,7 @@ public class DatabaseWriter extends Writer
 			writer.emitField( "String", SqlUtil.IDENTIFIER( table ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "\"" + table.name + "\"" );
 
 			int index = 1;
-			for ( Triple<String, String, String> row : table.fields )
+			for ( Triple<String, String, List<Constraint>> row : table.fields )
 			{
 				writer.emitField( "String", SqlUtil.ROW_COLUMN( table, row ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "\"" + row.snd + "\"" );
 				writer.emitField( "int", SqlUtil.ROW_COLUMN_POSITION( table, row ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "" + index );

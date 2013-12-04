@@ -41,4 +41,12 @@ public class Constraint
 
 		throw new NullPointerException( "Unidentified constraint found in " + value );
 	}
+
+	public String toString()
+	{
+		if (name != null)
+			return name + " " + value;
+		else
+			return value;
+	}
 }

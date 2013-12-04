@@ -3,6 +3,7 @@ package com.trikke.util;
 import com.trikke.data.*;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -23,12 +24,12 @@ public class SqlUtil
 		return obj.name.toUpperCase() + "_TABLE";
 	}
 
-	public static String ROW_COLUMN( SQLObject obj, Triple<String, String, String> row )
+	public static String ROW_COLUMN( SQLObject obj, Triple<String, String, List<Constraint>> row )
 	{
 		return obj.name.toUpperCase() + "_" + row.snd.toUpperCase() + "_COLUMN";
 	}
 
-	public static String ROW_COLUMN_POSITION( SQLObject obj, Triple<String, String, String> row )
+	public static String ROW_COLUMN_POSITION( SQLObject obj, Triple<String, String, List<Constraint>> row )
 	{
 		return obj.name.toUpperCase() + "_" + row.snd.toUpperCase() + "_COLUMN_POSITION";
 	}
@@ -53,17 +54,21 @@ public class SqlUtil
 			statement += "\t\t\t \"" + Table.ANDROID_ID + " integer primary key autoincrement,\" + \n";
 		}
 
-		Iterator<Triple<String, String, String>> fieldsiter = table.fields.iterator();
+		Iterator<Triple<String, String, List<Constraint>>> fieldsiter = table.fields.iterator();
 
 		while ( fieldsiter.hasNext() )
 		{
-			Triple<String, String, String> row = fieldsiter.next();
+			Triple<String, String, List<Constraint>> row = fieldsiter.next();
 
 			statement += "\t\t\t " + ROW_COLUMN( table, row ) + " + \" " + SqlUtil.getSQLtypeFor( row.fst );
 
-			if ( row.lst != null )
+			if ( !row.lst.isEmpty() )
 			{
-				statement += " " + row.lst;
+				Iterator<Constraint> constraintiter = row.lst.iterator();
+				while ( constraintiter.hasNext() )
+				{
+					statement += " " + constraintiter.next().value;
+				}
 			}
 
 			if ( fieldsiter.hasNext() || !table.constraints.isEmpty() )
@@ -72,12 +77,12 @@ public class SqlUtil
 			}
 		}
 
-		Iterator<Pair<String, String>> constraintiter = table.constraints.iterator();
+		Iterator<Constraint> constraintiter = table.constraints.iterator();
 
 		while ( constraintiter.hasNext() )
 		{
-			Pair<String, String> constraint = constraintiter.next();
-			statement += "\t\t\t \"CONSTRAINT " + constraint.fst + " " + constraint.snd;
+			Constraint constraint = constraintiter.next();
+			statement += "\t\t\t \"CONSTRAINT " + constraint.name + " " + constraint.value;
 			if ( constraintiter.hasNext() )
 			{
 				statement += ",\" + \n";

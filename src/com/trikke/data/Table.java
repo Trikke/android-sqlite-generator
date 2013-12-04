@@ -3,6 +3,7 @@ package com.trikke.data;
 import com.trikke.util.SqlUtil;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by the awesome :
@@ -14,8 +15,8 @@ public class Table extends SQLObject
 {
 	public static final String ANDROID_ID = "_id";
 
-	public ArrayList<Triple<String, String, String>> fields = new ArrayList<Triple<String, String, String>>();
-	public ArrayList<Pair<String, String>> constraints = new ArrayList<Pair<String, String>>();
+	public ArrayList<Triple<String, String, List<Constraint>>> fields = new ArrayList<Triple<String, String, List<Constraint>>>(  );
+	public ArrayList<Constraint> constraints = new ArrayList<Constraint>(  );
 
 	private boolean hasPrimaryKey;
 
@@ -26,18 +27,14 @@ public class Table extends SQLObject
 
 	}
 
-	public void addField( String type, String name, String constraints )
+	public void addField( String type, String name, List<Constraint> constraints )
 	{
-		if ( type.equals( "autoincrement" ) )
-		{
-			constraints = "primary key autoincrement";
-		}
-		fields.add( new Triple<String, String, String>( SqlUtil.getJavaTypeFor( type ), name, constraints ) );
+		fields.add( new Triple<String, String, List<Constraint>>( SqlUtil.getJavaTypeFor( type ), name, constraints ) );
 	}
 
-	public void addConstraint( String name, String constraint )
+	public void addConstraint( String name, String definition )
 	{
-		constraints.add( new Pair<String, String>( name, constraint ) );
+		constraints.add( new Constraint( name, definition ) );
 	}
 
 	public String getSingleName()
@@ -50,9 +47,9 @@ public class Table extends SQLObject
 		return "ALL" + name;
 	}
 
-	public Triple<String, String, String> getFieldByName( String name )
+	public Triple<String, String, List<Constraint>> getFieldByName( String name )
 	{
-		for ( Triple<String, String, String> field : fields )
+		for ( Triple<String, String, List<Constraint>> field : fields )
 		{
 			if ( field.snd.toLowerCase().equals( name.toLowerCase() ) )
 			{

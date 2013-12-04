@@ -1,5 +1,6 @@
 package com.trikke.writer;
 
+import com.trikke.data.Constraint;
 import com.trikke.data.Model;
 import com.trikke.data.Table;
 import com.trikke.data.Triple;
@@ -10,6 +11,7 @@ import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 
 /**
  * Created by the awesome :
@@ -112,7 +114,7 @@ public class CRUDBatchClientWriter extends Writer
 	{
 		// Default array params for all rows
 		ArrayList<String> params = new ArrayList<String>();
-		for ( Triple<String, String, String> row : table.fields )
+		for ( Triple<String, String, List<Constraint>> row : table.fields )
 		{
 
 			params.add( SqlUtil.getJavaTypeFor( row.fst ) );
@@ -134,7 +136,7 @@ public class CRUDBatchClientWriter extends Writer
 		// Add through ContentProviderOperation
 		writer.beginMethod( "void", "add" + Util.capitalize( table.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), params.toArray( new String[params.size()] ) );
 		writer.emitStatement( "ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newInsert(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ")" );
-		for ( Triple<String, String, String> row : table.fields )
+		for ( Triple<String, String, List<Constraint>> row : table.fields )
 		{
 			writer.emitStatement( "operationBuilder.withValue(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.snd + ")" );
 		}
@@ -161,7 +163,7 @@ public class CRUDBatchClientWriter extends Writer
 		writer.emitEmptyLine();
 		writer.beginMethod( "void", "update" + Util.capitalize( table.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), updateParams.toArray( new String[updateParams.size()] ) );
 		writer.emitStatement( "ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ")" );
-		for ( Triple<String, String, String> row : table.fields )
+		for ( Triple<String, String, List<Constraint>> row : table.fields )
 		{
 			writer.emitStatement( "operationBuilder.withValue(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.snd + ")" );
 		}
