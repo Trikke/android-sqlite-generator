@@ -68,7 +68,7 @@ public class CRUDBatchClientWriter extends Writer
 	private void emitFields() throws IOException
 	{
 		writer.emitEmptyLine();
-		writer.emitField( "ArrayList<ContentProviderOperation>", "batchOperations", EnumSet.of( Modifier.PRIVATE, Modifier.STATIC ) );
+		writer.emitField( "ArrayList<ContentProviderOperation>", "batchOperations", EnumSet.of( Modifier.PRIVATE ) );
 		writer.emitEmptyLine();
 	}
 
@@ -84,13 +84,13 @@ public class CRUDBatchClientWriter extends Writer
 
 		writer.emitEmptyLine();
 		writer.emitJavadoc( "Starts a new batch of operations to run on commit." );
-		writer.beginMethod( "void", "start", EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ) );
+		writer.beginMethod( "void", "start", EnumSet.of( Modifier.PUBLIC ) );
 		writer.emitStatement( "batchOperations = new ArrayList<ContentProviderOperation>()" );
 		writer.endMethod();
 
 		writer.emitEmptyLine();
 		writer.emitJavadoc( "Commits a started batch of operations, this can include any variety of operations." );
-		writer.beginMethod( "ContentProviderResult[]", "commit", EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), batchparams, throwing );
+		writer.beginMethod( "ContentProviderResult[]", "commit", EnumSet.of( Modifier.PUBLIC ), batchparams, throwing );
 		writer.beginControlFlow( "if (batchOperations != null) " );
 		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
 		writer.emitStatement( "ContentProviderResult[] result = cr.applyBatch( " + mModel.getContentProviderName() + ".AUTHORITY, batchOperations )" );
@@ -103,7 +103,7 @@ public class CRUDBatchClientWriter extends Writer
 
 		writer.emitEmptyLine();
 		writer.emitJavadoc( "add an operation to the batch of operations, if this client was started." );
-		writer.beginMethod( "void", "add", EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), "ContentProviderOperation", "operation" );
+		writer.beginMethod( "void", "add", EnumSet.of( Modifier.PUBLIC ), "ContentProviderOperation", "operation" );
 		writer.beginControlFlow( "if (batchOperations != null) " );
 		writer.emitStatement( "batchOperations.add(operation)" );
 		writer.nextControlFlow( "else" );
@@ -138,7 +138,7 @@ public class CRUDBatchClientWriter extends Writer
 		writer.emitEmptyLine();
 
 		// Add through ContentProviderOperation
-		writer.beginMethod( "void", "add" + Util.capitalize( table.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), params.toArray( new String[params.size()] ) );
+		writer.beginMethod( "void", "add" + Util.capitalize( table.name ), EnumSet.of( Modifier.PUBLIC ), params.toArray( new String[params.size()] ) );
 		writer.emitStatement( "ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newInsert(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ")" );
 		for ( Field row : table.fields )
 		{
@@ -167,14 +167,14 @@ public class CRUDBatchClientWriter extends Writer
 
 		// Remove All results
 		writer.emitEmptyLine();
-		writer.beginMethod( "void", "removeAll" + Util.capitalize( table.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ) );
+		writer.beginMethod( "void", "removeAll" + Util.capitalize( table.name ), EnumSet.of( Modifier.PUBLIC ) );
 		writer.emitStatement( "ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newDelete(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ")" );
 		insertAddOpBlock();
 		writer.endMethod();
 
 		// Update through ContentProviderOperation
 		writer.emitEmptyLine();
-		writer.beginMethod( "void", "update" + Util.capitalize( table.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), updateParams.toArray( new String[updateParams.size()] ) );
+		writer.beginMethod( "void", "update" + Util.capitalize( table.name ), EnumSet.of( Modifier.PUBLIC ), updateParams.toArray( new String[updateParams.size()] ) );
 		writer.emitStatement( "ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ")" );
 		for ( Field row : table.fields )
 		{
@@ -201,7 +201,7 @@ public class CRUDBatchClientWriter extends Writer
 
 		// remove with UNIQUE
 		writer.emitEmptyLine();
-		writer.beginMethod( "void", "remove" + Util.capitalize( table.name ) + "With" + Util.capitalize( field.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), params.toArray( new String[params.size()] ) );
+		writer.beginMethod( "void", "remove" + Util.capitalize( table.name ) + "With" + Util.capitalize( field.name ), EnumSet.of( Modifier.PUBLIC ), params.toArray( new String[params.size()] ) );
 		writer.emitStatement( "ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newDelete(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ")" );
 		writer.emitStatement( "operationBuilder.withSelection(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, field ) + " + \"=?\", new String[]{String.valueOf(" + field.name + ")})" );
 		insertAddOpBlock();
