@@ -1,5 +1,6 @@
 package com.trikke.writer;
 
+import com.trikke.data.Constraint;
 import com.trikke.data.Field;
 import com.trikke.data.Model;
 import com.trikke.data.Table;
@@ -10,6 +11,7 @@ import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.Iterator;
 
 /**
  * Created by the awesome :
@@ -91,7 +93,9 @@ public class CRUDBatchClientWriter extends Writer
 		writer.beginMethod( "ContentProviderResult[]", "commit", EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), batchparams, throwing );
 		writer.beginControlFlow( "if (batchOperations != null) " );
 		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
-		writer.emitStatement( "return cr.applyBatch( " + mModel.getContentProviderName() + ".AUTHORITY, batchOperations )" );
+		writer.emitStatement( "ContentProviderResult[] result = cr.applyBatch( " + mModel.getContentProviderName() + ".AUTHORITY, batchOperations )" );
+		writer.emitStatement( "batchOperations.clear()" );
+		writer.emitStatement( "return result" );
 		writer.nextControlFlow( "else" );
 		writer.emitStatement( "throw new RuntimeException(\"" + mModel.getCRUDBatchClientName() + ".start() needs to be called first!\")" );
 		writer.endControlFlow();
@@ -127,6 +131,8 @@ public class CRUDBatchClientWriter extends Writer
 		// TODO : add unique id
 		updateParams.addAll( params );
 
+		Iterator<Constraint> constraintiter;
+
 		writer.emitEmptyLine();
 		writer.emitJavadoc( table.name + " OPERATIONS\nall operations require this client to first run start" );
 		writer.emitEmptyLine();
@@ -141,13 +147,23 @@ public class CRUDBatchClientWriter extends Writer
 		insertAddOpBlock();
 		writer.endMethod();
 
-		// remove with UNIQUE
-		writer.emitEmptyLine();
-		writer.beginMethod( "void", "remove" + Util.capitalize( table.name ) + "With" + Util.capitalize( table.getPrimaryKey().name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), paramsWithUnique.toArray( new String[paramsWithUnique.size()] ) );
-		writer.emitStatement( "ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newDelete(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ")" );
-		writer.emitStatement( "operationBuilder.withSelection(\"" + table.getPrimaryKey().name + "=?\", new String[]{String.valueOf(" + table.getPrimaryKey().name + ")})" );
-		insertAddOpBlock();
-		writer.endMethod();
+		// Removes
+		writeRemoveWith( table, table.getPrimaryKey() );
+
+		constraintiter = table.constraints.iterator();
+
+		while ( constraintiter.hasNext() )
+		{
+			Constraint constraint = constraintiter.next();
+			if ( constraint.type.equals( Constraint.Type.UNIQUE ) )
+			{
+				final String[] fields = SqlUtil.getFieldsFromConstraint( constraint );
+				for ( int i = 0; i < fields.length; i++ )
+				{
+					writeRemoveWith( table, table.getFieldByName( fields[i] ) );
+				}
+			}
+		}
 
 		// Remove All results
 		writer.emitEmptyLine();
@@ -155,7 +171,6 @@ public class CRUDBatchClientWriter extends Writer
 		writer.emitStatement( "ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newDelete(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ")" );
 		insertAddOpBlock();
 		writer.endMethod();
-
 
 		// Update through ContentProviderOperation
 		writer.emitEmptyLine();
@@ -167,23 +182,6 @@ public class CRUDBatchClientWriter extends Writer
 		}
 		insertAddOpBlock();
 		writer.endMethod();
-
-		/*
-		// Update with where clause
-		writer.emitEmptyLine();
-		writer.beginMethod( "int", "update" + Util.capitalize( table.name ) + "Where", EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), updateWhereParams.toArray( new String[updateWhereParams.size()] ) );
-		writer.emitStatement( "ContentValues contentValues = new ContentValues()" );
-		for ( Pair<String, String> row : table.fields )
-		{
-			writer.emitStatement( "contentValues.put(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.snd + ")" );
-		}
-		writer.emitStatement( "Uri rowURI = " + mModel.getContentProviderName() + "." + SqlUtil.URI( table ));
-		writer.emitStatement( "String where = \"rowname=?\"" );
-		writer.emitStatement( "String whereArgs[] = new String[]{String.valueOf(updatevalue)}" );
-		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
-		writer.emitStatement( "return cr.update(rowURI, contentValues, where, whereArgs)" );
-		writer.endMethod();
-		*/
 	}
 
 	private void insertAddOpBlock() throws IOException
@@ -193,6 +191,21 @@ public class CRUDBatchClientWriter extends Writer
 		writer.nextControlFlow( "else" );
 		writer.emitStatement( "throw new RuntimeException(\"" + mModel.getCRUDBatchClientName() + ".start() needs to be called first!\")" );
 		writer.endControlFlow();
+	}
+
+	private void writeRemoveWith( Table table, Field field ) throws IOException
+	{
+		ArrayList<String> params = new ArrayList<String>();
+		params.add( SqlUtil.getJavaTypeFor( field.type ) );
+		params.add( field.name );
+
+		// remove with UNIQUE
+		writer.emitEmptyLine();
+		writer.beginMethod( "void", "remove" + Util.capitalize( table.name ) + "With" + Util.capitalize( field.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), params.toArray( new String[params.size()] ) );
+		writer.emitStatement( "ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newDelete(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ")" );
+		writer.emitStatement( "operationBuilder.withSelection(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, field ) + " + \"=?\", new String[]{String.valueOf(" + field.name + ")})" );
+		insertAddOpBlock();
+		writer.endMethod();
 	}
 
 }

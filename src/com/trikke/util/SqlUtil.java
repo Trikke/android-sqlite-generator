@@ -90,6 +90,8 @@ public class SqlUtil
 			}
 		}
 
+		statement += ")";
+
 		return statement;
 	}
 

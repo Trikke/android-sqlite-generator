@@ -79,10 +79,17 @@ public class DatabaseWriter extends Writer
 	{
 		for ( Table table : mModel.getTables() )
 		{
-			writer.emitSingleLineComment( table.name + " constants " );
+			writer.emitSingleLineComment( "Table " + table.name + " constants " );
 			writer.emitField( "String", SqlUtil.IDENTIFIER( table ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "\"" + table.name + "\"" );
 
-			int index = 1;
+			int index = 0;
+
+			// default _ID field
+			Field defaultrow = Table.getDefaultAndroidIdField();
+			writer.emitField( "String", SqlUtil.ROW_COLUMN( table, defaultrow ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "\"" + defaultrow.name + "\"" );
+			writer.emitField( "int", SqlUtil.ROW_COLUMN_POSITION( table, defaultrow ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "" + index );
+			index++;
+
 			for ( Field row : table.fields )
 			{
 				writer.emitField( "String", SqlUtil.ROW_COLUMN( table, row ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "\"" + row.name + "\"" );
@@ -94,7 +101,7 @@ public class DatabaseWriter extends Writer
 
 		for ( View view : mModel.getViews() )
 		{
-			writer.emitSingleLineComment( view.name + " constants " );
+			writer.emitSingleLineComment( "View " + view.name + " constants " );
 			int index = 0;
 			for ( Pair<String, String> select : view.fields )
 			{

@@ -18,9 +18,9 @@ public class SqliteGenerator
 {
 	private static final String VERSION = "2.0";
 
-	private static final String DESCRIBE_PATH_FLAG = "--describe=";
+	private static final String DESCRIBE_PATH_FLAG = "--in=";
 	private static final String CONFIG_PATH_FLAG = "--config=";
-	private static final String JAVA_OUT_FLAG = "--java_out=";
+	private static final String JAVA_OUT_FLAG = "--out=";
 
 	private String describePath;
 	private String configFile;
@@ -128,7 +128,7 @@ public class SqliteGenerator
 
 		} catch ( IOException ex )
 		{
-			System.err.println( ex.getMessage() );
+			System.err.println( "Couldn't parse the config json file." );
 			System.exit( 1 );
 		} catch ( com.eclipsesource.json.ParseException pex )
 		{
@@ -137,6 +137,11 @@ public class SqliteGenerator
 		} catch ( NullPointerException npex )
 		{
 			System.err.println( "A required value in the config file is missing." );
+			System.exit( 1 );
+		}catch ( Exception ex )
+		{
+			ex.printStackTrace();
+			System.err.println( "Couldn't parse the config json file." );
 			System.exit( 1 );
 		}
 	}
@@ -157,6 +162,7 @@ public class SqliteGenerator
 			{
 				if ( !fileEntry.getPath().equals( configFile ) )
 				{
+					System.out.println();
 					parseObjectFromFile( fileEntry );
 				}
 			}
@@ -167,6 +173,11 @@ public class SqliteGenerator
 	{
 		int pos = file.getName().lastIndexOf( "." );
 		String name = pos > 0 ? file.getName().substring( 0, pos ) : file.getName();
+
+		if (!file.getName().endsWith( ".json" ))
+			return;
+
+		System.out.println("Trying to parse " + file.getName());
 
 		try
 		{

@@ -65,7 +65,7 @@ public class Table extends SQLObject
 		{
 			return primaryKey;
 		}
-		return new Field( "int", ANDROID_ID, new ArrayList<Constraint>() );
+		return getDefaultAndroidIdField();
 	}
 
 	public boolean hasPrimaryKey()
@@ -83,5 +83,10 @@ public class Table extends SQLObject
 	{
 		this.hasPrimaryKey = true;
 		primaryKey = field;
+	}
+
+	public static Field getDefaultAndroidIdField()
+	{
+		return new Field( "int", ANDROID_ID, new ArrayList<Constraint>() );
 	}
 }

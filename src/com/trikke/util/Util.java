@@ -95,7 +95,7 @@ public class Util
 		return C;
 	}
 
-	public static JsonObject getJsonFromFile( String filePath ) throws IOException
+	public static JsonObject getJsonFromFile( String filePath ) throws Exception
 	{
 		InputStream file = new FileInputStream( filePath );
 		InputStream buffer = new BufferedInputStream( file );
