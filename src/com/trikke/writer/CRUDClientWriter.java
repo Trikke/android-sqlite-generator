@@ -177,7 +177,7 @@ public class CRUDClientWriter extends Writer
 		writer.beginMethod( "Cursor", "getAll" + Util.capitalize( table.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), "Context", "c" );
 		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
 
-		String arrays = "";
+		String arrays = mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, Table.getDefaultAndroidIdField() ) + ",\n";
 		for ( Field row : table.fields )
 		{
 			arrays += mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + ",\n";
