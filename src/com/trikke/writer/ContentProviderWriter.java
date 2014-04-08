@@ -64,7 +64,12 @@ public class ContentProviderWriter extends Writer
 		writer.emitField( "int", "DATABASE_VERSION", EnumSet.of( Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL ), String.valueOf( mModel.getDbVersion() ) );
 		writer.emitField( "String", "ROW_ID", EnumSet.of( Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL ), "\"" + Table.ANDROID_ID + "\"" );
 		writer.emitEmptyLine();
-		writer.emitField( "String", "AUTHORITY", EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "\"" + mModel.getContentAuthority() + "\"" );
+		String authvalue = "\"" + mModel.getContentAuthority() + "\"";
+		if (mModel.isContentAuthorityClass())
+		{
+			authvalue = mModel.getContentAuthority();
+		}
+		writer.emitField( "String", "AUTHORITY", EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), authvalue );
 		writer.emitEmptyLine();
 		writer.emitField( mModel.getDbClassName(), "mLocalDatabase", EnumSet.of( Modifier.PRIVATE ) );
 		writer.emitEmptyLine();
@@ -97,11 +102,11 @@ public class ContentProviderWriter extends Writer
 		writer.emitEmptyLine();
 		for ( Table table : mModel.getTables() )
 		{
-			writer.emitField( "Uri", SqlUtil.URI( table ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "Uri.parse(\"content://" + mModel.getContentAuthority() + "/" + table.name + "\")" );
+			writer.emitField( "Uri", SqlUtil.URI( table ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "Uri.parse(\"content://\" + AUTHORITY + \"/" + table.name + "\")" );
 		}
 		for ( View view : mModel.getViews() )
 		{
-			writer.emitField( "Uri", SqlUtil.URI( view ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "Uri.parse(\"content://" + mModel.getContentAuthority() + "/" + view.name + "\")" );
+			writer.emitField( "Uri", SqlUtil.URI( view ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL ), "Uri.parse(\"content://\" + AUTHORITY + \"/" + view.name + "\")" );
 		}
 		writer.emitEmptyLine();
 	}
@@ -115,13 +120,13 @@ public class ContentProviderWriter extends Writer
 
 		for ( Table table : mModel.getTables() )
 		{
-			writer.emitStatement( "uriMatcher.addURI(\"" + mModel.getContentAuthority() + "\", \"" + table.name + "\", " + table.getAllName() + ")" );
-			writer.emitStatement( "uriMatcher.addURI(\"" + mModel.getContentAuthority() + "\", \"" + table.name + "/#\", " + table.getSingleName() + ")" );
+			writer.emitStatement( "uriMatcher.addURI( AUTHORITY, \"" + table.name + "\", " + table.getAllName() + ")" );
+			writer.emitStatement( "uriMatcher.addURI( AUTHORITY, \"" + table.name + "/#\", " + table.getSingleName() + ")" );
 		}
 
 		for ( View view : mModel.getViews() )
 		{
-			writer.emitStatement( "uriMatcher.addURI(\"" + mModel.getContentAuthority() + "\", \"" + view.name + "\", " + SqlUtil.IDENTIFIER( view ) + ")" );
+			writer.emitStatement( "uriMatcher.addURI( AUTHORITY, \"" + view.name + "\", " + SqlUtil.IDENTIFIER( view ) + ")" );
 		}
 
 		writer.endInitializer();

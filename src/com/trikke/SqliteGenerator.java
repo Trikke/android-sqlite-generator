@@ -107,7 +107,7 @@ public class SqliteGenerator
 			System.out.println();
 			System.out.println( "Don't forget to add the following to your AndroidManifest.xml under the <application> tag." );
 			System.out.println();
-			System.out.println( "<provider android:name=\"" + mModel.getClassPackage() + "." + mModel.getDbClassName() + "\" android:authorities=\"" + mModel.getContentAuthority() + "\">" );
+			System.out.println( "<provider android:name=\"" + mModel.getClassPackage() + "." + mModel.getContentProviderName() + "\" android:authorities=\"" + (mModel.isContentAuthorityClass() ? "whatever value you set in your class" : mModel.getContentAuthority()) + "\">" );
 			System.out.println();
 		}
 	}
@@ -120,8 +120,18 @@ public class SqliteGenerator
 
 			JsonObject config = Util.getJsonFromFile( configFile );
 
+			if ( config.names().contains( "authorityclass" ) )
+			{
+				mModel.setContentAuthorityClass( true );
+				mModel.setContentAuthority( config.get( "authorityclass" ).asString() );
+			}
+			else
+			{
+				mModel.setContentAuthorityClass( false );
+				mModel.setContentAuthority( config.get( "authority" ).asString() );
+			}
+
 			mModel.setClassPackage( config.get( "package" ).asString() );
-			mModel.setContentAuthority( config.get( "authority" ).asString() );
 			mModel.setDbName( config.get( "databaseName" ).asString() );
 			mModel.setDbVersion( config.get( "databaseVersion" ).asInt() );
 			mModel.setContentProviderName( config.get( "contentproviderName" ).asString() );

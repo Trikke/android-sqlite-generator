@@ -39,12 +39,12 @@ public class Table extends SQLObject
 
 	public String getSingleName()
 	{
-		return "SINGLE" + name;
+		return "SINGLE" + name.toUpperCase();
 	}
 
 	public String getAllName()
 	{
-		return "ALL" + name;
+		return "ALL" + name.toUpperCase();
 	}
 
 	public Field getFieldByName( String name )

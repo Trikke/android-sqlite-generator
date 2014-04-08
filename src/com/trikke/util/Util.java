@@ -34,6 +34,11 @@ public class Util
 		return new JavaWriter( new OutputStreamWriter( new FileOutputStream( fileName ), UTF_8 ) );
 	}
 
+	public static boolean isEmpty( CharSequence cs )
+	{
+		return cs == null || cs.length() == 0;
+	}
+
 	public static String capitalize( String line )
 	{
 		return Character.toUpperCase( line.charAt( 0 ) ) + line.substring( 1 ).toLowerCase();

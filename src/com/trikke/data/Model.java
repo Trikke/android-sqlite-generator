@@ -12,6 +12,7 @@ public class Model
 {
 	private String classPackage;
 	private String contentAuthority;
+	private boolean isContentAuthorityClass;
 	private String dbName;
 	private int dbVersion;
 	private String contentProviderName;
@@ -26,6 +27,11 @@ public class Model
 	public void addView( View view )
 	{
 		views.add( view );
+	}
+
+	public boolean isContentAuthorityClass()
+	{
+		return isContentAuthorityClass;
 	}
 
 	public String getDbClassName()
@@ -111,5 +117,10 @@ public class Model
 	public void setViews( ArrayList<View> views )
 	{
 		this.views = views;
+	}
+
+	public void setContentAuthorityClass( boolean isContentAuthorityClass )
+	{
+		this.isContentAuthorityClass = isContentAuthorityClass;
 	}
 }
