@@ -47,7 +47,7 @@ public class ContentProviderWriter extends Writer
 
 	private void emitImports() throws IOException
 	{
-		writer.emitImports( "java.util.Map", "java.util.ArrayList", "android.text.TextUtils", "android.content.*", "android.database.Cursor", "android.database.sqlite.SQLiteConstraintException", "android.database.sqlite.SQLiteDatabase", "android.database.sqlite.SQLiteException", "android.database.sqlite.SQLiteQueryBuilder", "android.database.sqlite.SQLiteStatement", "android.net.Uri", "android.text.TextUtils", "android.util.Log" );
+		writer.emitImports( "java.util.Map", "java.util.ArrayList", "android.text.TextUtils", "android.content.*", "android.database.Cursor", "android.database.sqlite.SQLiteDatabase", "android.database.sqlite.SQLiteException", "android.database.sqlite.SQLiteQueryBuilder", "android.net.Uri", "android.text.TextUtils", "android.util.Log" );
 		writer.emitEmptyLine();
 	}
 
@@ -179,8 +179,8 @@ public class ContentProviderWriter extends Writer
 		writer.emitEmptyLine();
 		writer.beginMethod( "boolean", "containsUnique", EnumSet.of( Modifier.PRIVATE ), "Uri", "uri", "ContentValues", "contentvalues" );
 		writer.emitStatement( "String unique = getUniqueKey(uri)" );
-		writer.beginControlFlow( "for (String key : contentvalues.keySet())" );
-		writer.beginControlFlow( "if (key.equals(unique))" );
+		writer.beginControlFlow( "for (Map.Entry<String, Object> item : contentvalues.valueSet())" );
+		writer.beginControlFlow( "if (item.getKey().equals(unique))" );
 		writer.emitStatement( "return true" );
 		writer.endControlFlow();
 		writer.endControlFlow();
