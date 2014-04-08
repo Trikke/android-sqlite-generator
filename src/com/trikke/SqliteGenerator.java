@@ -5,10 +5,7 @@ import com.eclipsesource.json.JsonValue;
 import com.trikke.data.*;
 import com.trikke.exception.ParserException;
 import com.trikke.util.Util;
-import com.trikke.writer.CRUDBatchClientWriter;
-import com.trikke.writer.CRUDClientWriter;
-import com.trikke.writer.ContentProviderWriter;
-import com.trikke.writer.DatabaseWriter;
+import com.trikke.writer.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -92,6 +89,9 @@ public class SqliteGenerator
 
 		if ( !mModel.getTables().isEmpty() )
 		{
+			ContractWriter cwriter = new ContractWriter( javaOut, mModel );
+			cwriter.compile();
+
 			DatabaseWriter dbwriter = new DatabaseWriter( javaOut, mModel );
 			dbwriter.compile();
 
@@ -132,7 +132,7 @@ public class SqliteGenerator
 			}
 
 			mModel.setClassPackage( config.get( "package" ).asString() );
-			mModel.setDbName( config.get( "databaseName" ).asString() );
+			mModel.setAppName( config.get( "appName" ).asString() );
 			mModel.setDbVersion( config.get( "databaseVersion" ).asInt() );
 			mModel.setContentProviderName( config.get( "contentproviderName" ).asString() );
 
@@ -346,9 +346,12 @@ public class SqliteGenerator
 
 			try
 			{
-				for ( JsonValue jsoninfo : jsonview.get( "on" ).asArray() )
+				if (jsonview.names().contains( "on" ))
 				{
-					view.addJoinOn( jsoninfo.asString() );
+					for ( JsonValue jsoninfo : jsonview.get( "on" ).asArray() )
+					{
+						view.addJoinOn( jsoninfo.asString() );
+					}
 				}
 			} catch ( NullPointerException e )
 			{

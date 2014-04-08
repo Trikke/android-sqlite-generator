@@ -142,7 +142,7 @@ public class CRUDBatchClientWriter extends Writer
 		writer.emitStatement( "ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newInsert(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ")" );
 		for ( Field row : table.fields )
 		{
-			writer.emitStatement( "operationBuilder.withValue(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.name + ")" );
+			writer.emitStatement( "operationBuilder.withValue(" + mModel.getContractName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.name + ")" );
 		}
 		insertAddOpBlock();
 		writer.endMethod();
@@ -178,7 +178,7 @@ public class CRUDBatchClientWriter extends Writer
 		writer.emitStatement( "ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newUpdate(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ")" );
 		for ( Field row : table.fields )
 		{
-			writer.emitStatement( "operationBuilder.withValue(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.name + ")" );
+			writer.emitStatement( "operationBuilder.withValue(" + mModel.getContractName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.name + ")" );
 		}
 		insertAddOpBlock();
 		writer.endMethod();
@@ -203,7 +203,7 @@ public class CRUDBatchClientWriter extends Writer
 		writer.emitEmptyLine();
 		writer.beginMethod( "void", "remove" + Util.capitalize( table.name ) + "With" + Util.capitalize( field.name ), EnumSet.of( Modifier.PUBLIC ), params.toArray( new String[params.size()] ) );
 		writer.emitStatement( "ContentProviderOperation.Builder operationBuilder = ContentProviderOperation.newDelete(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ")" );
-		writer.emitStatement( "operationBuilder.withSelection(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, field ) + " + \"=?\", new String[]{String.valueOf(" + field.name + ")})" );
+		writer.emitStatement( "operationBuilder.withSelection(" + mModel.getContractName() + "." + SqlUtil.ROW_COLUMN( table, field ) + " + \"=?\", new String[]{String.valueOf(" + field.name + ")})" );
 		insertAddOpBlock();
 		writer.endMethod();
 	}

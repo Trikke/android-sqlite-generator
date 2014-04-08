@@ -13,7 +13,7 @@ public class Model
 	private String classPackage;
 	private String contentAuthority;
 	private boolean isContentAuthorityClass;
-	private String dbName;
+	private String appName;
 	private int dbVersion;
 	private String contentProviderName;
 	private ArrayList<Table> tables = new ArrayList<Table>();
@@ -36,7 +36,7 @@ public class Model
 
 	public String getDbClassName()
 	{
-		return dbName + "DB";
+		return appName + "DB";
 	}
 
 	public String getCRUDClientName()
@@ -49,14 +49,19 @@ public class Model
 		return contentProviderName + "BatchClient";
 	}
 
-	public String getDbName()
+	public String getContractName()
 	{
-		return dbName;
+		return appName + "Contract";
 	}
 
-	public void setDbName( String dbName )
+	public String getAppName()
 	{
-		this.dbName = dbName;
+		return appName;
+	}
+
+	public void setAppName( String appName )
+	{
+		this.appName = appName;
 	}
 
 	public String getContentAuthority()

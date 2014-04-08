@@ -141,7 +141,7 @@ public class CRUDClientWriter extends Writer
 		writer.emitStatement( "ContentValues contentValues = new ContentValues()" );
 		for ( Field row : table.fields )
 		{
-			writer.emitStatement( "contentValues.put(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.name + ")" );
+			writer.emitStatement( "contentValues.put(" + mModel.getContractName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.name + ")" );
 		}
 		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
 		writer.emitStatement( "return cr.insert(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ", contentValues)" );
@@ -177,10 +177,10 @@ public class CRUDClientWriter extends Writer
 		writer.beginMethod( "Cursor", "getAll" + Util.capitalize( table.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), "Context", "c" );
 		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
 
-		String arrays = mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, Table.getDefaultAndroidIdField() ) + ",\n";
+		String arrays = mModel.getContractName() + "." + SqlUtil.ROW_COLUMN( table, Table.getDefaultAndroidIdField() ) + ",\n";
 		for ( Field row : table.fields )
 		{
-			arrays += mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + ",\n";
+			arrays += mModel.getContractName() + "." + SqlUtil.ROW_COLUMN( table, row ) + ",\n";
 		}
 		writer.emitStatement( "String[] result_columns = new String[]{\n" + arrays + "}" );
 		writer.emitStatement( "String where = null" );
@@ -196,7 +196,7 @@ public class CRUDClientWriter extends Writer
 		writer.emitStatement( "ContentValues contentValues = new ContentValues()" );
 		for ( Field row : table.fields )
 		{
-			writer.emitStatement( "contentValues.put(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.name + ")" );
+			writer.emitStatement( "contentValues.put(" + mModel.getContractName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.name + ")" );
 		}
 		writer.emitStatement( "Uri rowURI = ContentUris.withAppendedId(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + "," + table.getPrimaryKey().name + ")" );
 		writer.emitStatement( "String where = null" );
@@ -236,7 +236,7 @@ public class CRUDClientWriter extends Writer
 		writer.emitEmptyLine();
 		writer.beginMethod( "Cursor", "get" + Util.capitalize( table.name ) + "With" + Util.capitalize( field.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), params.toArray( new String[params.size()] ) );
 		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
-		writer.emitStatement( "return cr.query(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ", null, " + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, field ) + " + \"=?\", new String[]{String.valueOf(" + field.name + ")},null)" );
+		writer.emitStatement( "return cr.query(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ", null, " + mModel.getContractName() + "." + SqlUtil.ROW_COLUMN( table, field ) + " + \"=?\", new String[]{String.valueOf(" + field.name + ")},null)" );
 		writer.endMethod();
 	}
 
@@ -252,7 +252,7 @@ public class CRUDClientWriter extends Writer
 		writer.emitEmptyLine();
 		writer.beginMethod( "int", "remove" + Util.capitalize( table.name ) + "With" + Util.capitalize( field.name ), EnumSet.of( Modifier.PUBLIC, Modifier.STATIC ), params.toArray( new String[params.size()] ) );
 		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
-		writer.emitStatement( "return cr.delete(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ", " + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, field ) + " + \"=?\", new String[]{String.valueOf(" + field.name + ")})" );
+		writer.emitStatement( "return cr.delete(" + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) + ", " + mModel.getContractName() + "." + SqlUtil.ROW_COLUMN( table, field ) + " + \"=?\", new String[]{String.valueOf(" + field.name + ")})" );
 		writer.endMethod();
 	}
 
@@ -282,10 +282,10 @@ public class CRUDClientWriter extends Writer
 		writer.emitStatement( "ContentValues contentValues = new ContentValues()" );
 		for ( Field row : table.fields )
 		{
-			writer.emitStatement( "contentValues.put(" + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.name + ")" );
+			writer.emitStatement( "contentValues.put(" + mModel.getContractName() + "." + SqlUtil.ROW_COLUMN( table, row ) + "," + row.name + ")" );
 		}
 		writer.emitStatement( "Uri rowURI = " + mModel.getContentProviderName() + "." + SqlUtil.URI( table ) );
-		writer.emitStatement( "String where = " + mModel.getDbClassName() + "." + SqlUtil.ROW_COLUMN( table, field ) + " + \"=?\"" );
+		writer.emitStatement( "String where = " + mModel.getContractName() + "." + SqlUtil.ROW_COLUMN( table, field ) + " + \"=?\"" );
 		writer.emitStatement( "String whereArgs[] = new String[]{String.valueOf(" + field.name + ")}" );
 		writer.emitStatement( "ContentResolver cr = c.getContentResolver()" );
 		writer.emitStatement( "return cr.update(rowURI, contentValues, where, whereArgs)" );

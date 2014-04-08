@@ -45,7 +45,7 @@ public class SqlUtil
 		return obj.name.toUpperCase() + "_" + Util.sanitize( selector, false ).toUpperCase() + "_COLUMN_POSITION";
 	}
 
-	public static String generateCreateStatement( Table table )
+	public static String generateCreateStatement( Model model, Table table )
 	{
 		String statement = "CREATE TABLE " + table.name + " (\" + \n";
 
@@ -61,7 +61,7 @@ public class SqlUtil
 		{
 			Field row = fieldsiter.next();
 
-			statement += "\t\t\t " + ROW_COLUMN( table, row ) + " + \" " + SqlUtil.getSQLtypeFor( row.type );
+			statement += "\t\t\t " + model.getContractName() + "." + ROW_COLUMN( table, row ) + " + \" " + SqlUtil.getSQLtypeFor( row.type );
 
 			if ( !row.constraints.isEmpty() )
 			{
@@ -120,10 +120,17 @@ public class SqlUtil
 		for ( i = 1; i < view.getFromtables().size(); i++ )
 		{
 			tablename = view.getFromtables().get( i );
-			statement += "\t\t\t\t\" " + view.jointype.toUpperCase() + " " + tablename + " ON ";
-			if ( i <= view.getJoinonfields().size() )
+			if (view.getJoinonfields().isEmpty())
 			{
-				statement += view.getFromtables().get( 0 ) + "." + view.getJoinonfields().get( i - 1 ) + " = " + tablename + "." + view.getJoinonfields().get( i - 1 );
+				statement += "\t\t\t\t\", " + tablename;
+			}
+			else
+			{
+				statement += "\t\t\t\t\" " + view.jointype.toUpperCase() + " " + tablename + " ON ";
+				if ( i <= view.getJoinonfields().size() )
+				{
+					statement += view.getFromtables().get( 0 ) + "." + view.getJoinonfields().get( i - 1 ) + " = " + tablename + "." + view.getJoinonfields().get( i - 1 );
+				}
 			}
 			if ( i < view.getFromtables().size() - 1 )
 			{
