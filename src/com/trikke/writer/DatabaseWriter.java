@@ -159,11 +159,11 @@ public class DatabaseWriter extends Writer
 
 		writer.emitEmptyLine();
 		writer.emitSingleLineComment( "The simplest case is to drop the old database and create a new one." );
-		writer.emitStatement( "clearDB()" );
+		writer.emitStatement( "clearDB(db)" );
 		writer.endMethod();
 
 		writer.emitEmptyLine();
-		writer.beginMethod( "void", "clearDB", EnumSet.of( Modifier.PUBLIC ) );
+		writer.beginMethod( "void", "clearDB", EnumSet.of( Modifier.PUBLIC ), "SQLiteDatabase", "db" );
 		writer.emitStatement( "Log.w(TAG, \"Clearing local database...\")" );
 		writer.emitEmptyLine();
 		for ( Table table : mModel.getTables() )
