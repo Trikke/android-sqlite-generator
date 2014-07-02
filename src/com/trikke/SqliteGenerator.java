@@ -107,7 +107,7 @@ public class SqliteGenerator
 			System.out.println();
 			System.out.println( "Don't forget to add the following to your AndroidManifest.xml under the <application> tag." );
 			System.out.println();
-			System.out.println( "<provider android:name=\"" + mModel.getClassPackage() + "." + mModel.getDbClassName() + "\" android:authorities=\"" + mModel.getContentAuthority() + "\">" );
+			System.out.println( "<provider android:name=\"" + mModel.getClassPackage() + "." + mModel.getContentProviderName()+ "\" android:authorities=\"" + mModel.getContentAuthority() + "\">" );
 			System.out.println();
 		}
 	}

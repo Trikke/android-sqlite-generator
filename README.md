@@ -23,7 +23,7 @@ Run the above command. There are only 2 parameters.
 Don't forget to add the content provider to the AndroidManifest.
 
 ```xml
-<provider android:name="PACKAGE.NAMEDB" android:authorities="AUTHORITY">
+<provider android:name="PACKAGE.CONTENT_PROVIDER_NAME" android:authorities="AUTHORITY">
 ```
 
 # Generated Classes
