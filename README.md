@@ -26,6 +26,23 @@ Don't forget to add the content provider to the AndroidManifest.
 <provider android:name="PACKAGE.NAMEDB" android:authorities="AUTHORITY">
 ```
 
+### Gradle configuration
+
+On Android Studio, you can use Gradle to generate files. Just put downloaded sqlitegenerator.jar on your app/libs folder and create a new task on build.gradle:
+
+```groovy
+task generateDb(type: Exec){
+    def config="libs/db.json"
+    def definitions="libs/tables"
+    def out="build/generated/source/buildConfig/debug/"
+
+    commandLine 'java', '-jar', 'libs/sqlitegenerator.jar','--in=' + definitions \
+    , '--config=' +  config, '--out=' + out
+}
+
+preBuild.dependsOn generateDb
+```
+
 # Generated Classes
 
 By default, the following files will be generated.
